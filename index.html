@@ -1,1 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ejecutivo Pro - Soporte Dealer V9</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #F1F5F9; }
+        .card { background-color: #0F172A; border: 1px solid #1E293B; border-radius: 0.75rem; padding: 1.25rem; transition: all 0.3s ease; height: 100%; }
+        .card:hover { border-color: #3B82F6; }
+        .kpi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+        .kpi-label { font-size: 0.7rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-action { border-radius: 0.5rem; padding: 0.6rem 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .btn-csv { background: #8B5CF6; color: white; }
+        .btn-img { background: #3B82F6; color: white; }
+        #csv-handler { display: none; }
+        select { background-color: #1E293B; color: white; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.5rem; font-size: 0.875rem; width: 100%; outline: none; }
+        select:focus { border-color: #3B82F6; }
+        .status-pill { padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 11px; }
+        th { background-color: #1E293B; color: #94A3B8; font-size: 0.65rem; text-transform: uppercase; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #1E293B; font-size: 0.8rem; }
+        .kpi-subtext { font-size: 0.75rem; color: #64748b; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body class="p-6 lg:p-8" id="capture-area">
 
+<header class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-black tracking-tight text-white italic uppercase">EXECUTIVE <span class="text-blue-500 underline">SUPPORT</span> V9</h1>
+        <p class="text-slate-400 text-xs font-medium">Análisis de Carga y Criticidad (Versión Híbrida)</p>
+    </div>
+    <div class="flex flex-wrap gap-3">
+        <button onclick="takeSnapshot()" class="btn-action btn-img">🖼️ Guardar Imagen</button>
+        <label for="csv-handler" class="btn-action btn-csv">
+            <span>📂 Cargar CSV</span>
+        </label>
+        <input type="file" id="csv-handler" accept=".csv">
+    </div>
+</header>
+
+<!-- Filtros -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Dealer</label>
+        <select id="filter-dealer" onchange="applyFilters()"><option value="all">Todos los Dealers</option></select>
+    </div>
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">País (Extracted)</label>
+        <select id="filter-country" onchange="applyFilters()"><option value="all">Todos los Países</option></select>
+    </div>
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Prioridad (Global)</label>
+        <select id="filter-prio" onchange="applyFilters()"><option value="all">Todas las Prioridades</option></select>
+    </div>
+</div>
+
+<!-- KPIs -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+    <div class="card border-l-4 border-l-blue-600">
+        <div class="kpi-label">Tickets Totales</div>
+        <div id="kpi-total" class="kpi-value mt-1">0</div>
+    </div>
+    <div class="card border-l-4 border-l-red-500">
+        <div class="kpi-label text-red-400">Casos Críticos</div>
+        <div id="kpi-crit" class="kpi-value text-red-500 mt-1">0</div>
+    </div>
+    <div class="card border-l-4 border-l-amber-500">
+        <div class="kpi-label text-amber-400">En Progreso</div>
+        <div id="kpi-progress" class="kpi-value text-amber-500 mt-1">0</div>
+    </div>
+    <div class="card border-l-4 border-l-emerald-500">
+        <div class="kpi-label text-emerald-400">Top Especialista</div>
+        <div id="kpi-top-spec" class="kpi-value text-emerald-500 mt-1">--</div>
+        <div id="kpi-top-spec-count" class="kpi-subtext">0 asignados</div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="font-bold text-blue-400 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-400 rounded-full"></span> 1. Carga por Especialista
+        </h3>
+        <div style="height:280px"><canvas id="chartSpec"></canvas></div>
+    </div>
+    <div class="card">
+        <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-500 rounded-full"></span> 2. Tickets por Semana
+        </h3>
+        <div style="height:280px"><canvas id="chartTrend"></canvas></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="font-bold text-slate-400 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-slate-400 rounded-full"></span> 3. Participación por Dealer (Top 10)
+        </h3>
+        <div style="height:280px"><canvas id="chartDealer"></canvas></div>
+    </div>
+    <div class="card">
+        <h3 class="font-bold text-indigo-400 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-indigo-400 rounded-full"></span> 4. Distribución de Next Actions
+        </h3>
+        <div style="height:280px"><canvas id="chartNextActions"></canvas></div>
+    </div>
+</div>
+
+<!-- Mapa de Calor (SOLO ESTE EN AZUL PROFUNDO) -->
+<div class="grid grid-cols-1 gap-6 mb-8">
+    <div class="card border-t-2 border-t-blue-900">
+        <h3 class="font-bold text-blue-300 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-900 rounded-full"></span> 5. Mapa de Calor (Crítico: Azul Cobalto a Marino)
+        </h3>
+        <div id="heatmap" style="height:350px"></div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card overflow-hidden mb-8 border-t-2 border-t-red-600">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-white uppercase text-[10px] tracking-widest">Atención Prioritaria</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table id="data-table">
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Especialista</th>
+                    <th>Dealer</th>
+                    <th>Hardware</th>
+                    <th>Prioridad</th>
+                    <th>Siguiente Paso</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="6" class="text-center py-10 text-slate-500 italic">Cargue el CSV para visualizar los datos.</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let rawData = [];
+    let charts = {};
+    
+    // Paleta de colores para gráficas normales
+    const PRIO_COLORS = {
+        'Crítica': '#EF4444', // Rojo
+        'Alta': '#F59E0B',    // Ambar
+        'Media': '#3B82F6',   // Azul
+        'Baja': '#10B981'     // Esmeralda
+    };
+
+    const MULTI_COLORS = ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#F43F5E', '#10B981', '#F59E0B', '#06B6D4', '#64748B'];
+
+    function initCharts() {
+        const commonOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 }, padding: 10 } } 
+            },
+            scales: {
+                x: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+                y: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } }
+            }
+        };
+
+        charts.spec = new Chart(document.getElementById('chartSpec'), {
+            type: 'bar',
+            options: { ...commonOptions, indexAxis: 'y' },
+            data: { labels: [], datasets: [
+                { label: 'Abierto', backgroundColor: '#3B82F6', data: [] },
+                { label: 'En progreso', backgroundColor: '#F59E0B', data: [] }
+            ]}
+        });
+
+        charts.trend = new Chart(document.getElementById('chartTrend'), {
+            type: 'bar',
+            options: { 
+                ...commonOptions,
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { color: '#94A3B8' } },
+                    y: { stacked: true, grid: { color: '#1E293B' }, ticks: { color: '#94A3B8' } }
+                }
+            },
+            data: { 
+                labels: [], 
+                datasets: [
+                    { label: 'Crítica', backgroundColor: PRIO_COLORS['Crítica'], data: [] },
+                    { label: 'Alta', backgroundColor: PRIO_COLORS['Alta'], data: [] },
+                    { label: 'Media', backgroundColor: PRIO_COLORS['Media'], data: [] },
+                    { label: 'Baja', backgroundColor: PRIO_COLORS['Baja'], data: [] }
+                ] 
+            }
+        });
+
+        charts.dealer = new Chart(document.getElementById('chartDealer'), {
+            type: 'pie',
+            options: { 
+                ...commonOptions, 
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            },
+            data: { labels: [], datasets: [{ label: 'Tickets', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        });
+
+        charts.nextActions = new Chart(document.getElementById('chartNextActions'), {
+            type: 'doughnut',
+            options: { 
+                ...commonOptions,
+                cutout: '65%',
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            },
+            data: { labels: [], datasets: [{ label: 'Frecuencia', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        });
+    }
+
+    document.getElementById('csv-handler').addEventListener('change', function(e) {
+        Papa.parse(e.target.files[0], {
+            header: true, skipEmptyLines: true,
+            complete: function(r) { 
+                rawData = r.data;
+                populateFilterOptions();
+                applyFilters();
+            }
+        });
+    });
+
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return d.getUTCFullYear() + "-W" + (weekNo < 10 ? '0' + weekNo : weekNo);
+    }
+
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split(' ')[0].split('/');
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+        return new Date(dateStr);
+    }
+
+    function extractCountry(str) {
+        if (!str) return "N/A";
+        const low = str.toLowerCase();
+        if (low.includes("colombia")) return "Colombia";
+        if (low.includes("perú") || low.includes("peru")) return "Perú";
+        if (low.includes("brazil") || low.includes("paulo")) return "Brasil";
+        if (low.includes("ecuador")) return "Ecuador";
+        if (low.includes("mexico") || low.includes("méxico")) return "México";
+        return "Otro";
+    }
+
+    function populateFilterOptions() {
+        const dealers = new Set(), countries = new Set(), prios = new Set();
+        rawData.forEach(row => {
+            if (row.Dealer) dealers.add(row.Dealer);
+            if (row.Prioridad) prios.add(row.Prioridad);
+            countries.add(extractCountry(row.Customer || row.Dealer));
+        });
+        const fillSelect = (id, set) => {
+            const el = document.getElementById(id);
+            el.innerHTML = `<option value="all">Todos</option>`;
+            Array.from(set).sort().forEach(val => el.innerHTML += `<option value="${val}">${val}</option>`);
+        };
+        fillSelect('filter-dealer', dealers);
+        fillSelect('filter-country', countries);
+        fillSelect('filter-prio', prios);
+    }
+
+    function applyFilters() {
+        const dF = document.getElementById('filter-dealer').value;
+        const cF = document.getElementById('filter-country').value;
+        const pF = document.getElementById('filter-prio').value;
+
+        const filtered = rawData.filter(row => {
+            const matchesDealer = dF === 'all' || row.Dealer === dF;
+            const matchesCountry = cF === 'all' || extractCountry(row.Customer || row.Dealer) === cF;
+            const matchesPrio = pF === 'all' || row.Prioridad === pF;
+            return matchesDealer && matchesCountry && matchesPrio;
+        });
+
+        renderDashboard(filtered);
+    }
+
+    function renderDashboard(data) {
+        const specs = {}, dealers = {}, heat = {}, weeksPrio = {}, nextActionsCounts = {};
+        const priosLabels = ['Baja', 'Media', 'Alta', 'Crítica'];
+        let crit = 0, prog = 0;
+
+        data.forEach(row => {
+            const st = (row.Satatus || row.Status || '').toLowerCase();
+            const spec = row['Assigned to'] || 'Sin asignar';
+            const prioFull = row.Prioridad || 'Media';
+            const hw = row.HW || 'Otro';
+            const dlr = row.Dealer || 'Desconocido';
+            const action = row['Next Steps'] || 'Sin definir';
+            
+            const pKey = priosLabels.find(p => prioFull.includes(p)) || 'Media';
+
+            const dateObj = parseDate(row['Open Request'] || row.Date);
+            if (dateObj && !isNaN(dateObj)) {
+                const wk = getWeekNumber(dateObj);
+                if (!weeksPrio[wk]) weeksPrio[wk] = { 'Crítica': 0, 'Alta': 0, 'Media': 0, 'Baja': 0 };
+                weeksPrio[wk][pKey]++;
+            }
+
+            if (pKey === 'Crítica') crit++;
+            if (st.includes('progres')) prog++;
+
+            if (!specs[spec]) specs[spec] = { open: 0, progress: 0, total: 0 };
+            if (st.includes('progres')) specs[spec].progress++; else specs[spec].open++;
+            specs[spec].total++;
+
+            dealers[dlr] = (dealers[dlr] || 0) + 1;
+
+            if (action !== 'Sin definir') {
+                nextActionsCounts[action] = (nextActionsCounts[action] || 0) + 1;
+            }
+
+            if (!heat[hw]) heat[hw] = { 'Baja': 0, 'Media': 0, 'Alta': 0, 'Crítica': 0 };
+            heat[hw][pKey]++;
+        });
+
+        // Tabla
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = '';
+        const criticalData = data.filter(row => (row.Prioridad || '').includes('Alta') || (row.Prioridad || '').includes('Crít'));
+
+        if (criticalData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-500 italic">Sin casos críticos activos.</td></tr>';
+        } else {
+            criticalData.slice(0, 10).forEach(row => {
+                const isCrit = (row.Prioridad || '').includes('Crít');
+                tbody.innerHTML += `<tr>
+                    <td class="text-blue-400 font-mono font-bold">${row['Ticket Number']}</td>
+                    <td class="text-white">${row['Assigned to'] || '---'}</td>
+                    <td>${row.Dealer || '---'}</td>
+                    <td class="text-slate-400">${row.HW || '---'}</td>
+                    <td><span class="status-pill ${isCrit ? 'bg-red-500/20 text-red-400' : 'bg-amber-500/20 text-amber-400'}">${row.Prioridad}</span></td>
+                    <td class="text-xs italic text-slate-500">${row['Next Steps'] || ''}</td>
+                </tr>`;
+            });
+        }
+
+        // KPIs
+        document.getElementById('kpi-total').innerText = data.length;
+        document.getElementById('kpi-crit').innerText = crit;
+        document.getElementById('kpi-progress').innerText = prog;
+        const specEntries = Object.entries(specs);
+        if(specEntries.length > 0) {
+            const topSpec = specEntries.sort((a,b) => b[1].total - a[1].total)[0];
+            document.getElementById('kpi-top-spec').innerText = topSpec[0].split(' ')[0]; 
+            document.getElementById('kpi-top-spec-count').innerText = `${topSpec[1].total} asignados`;
+        }
+
+        // Actualizar Gráficas
+        const sKeys = Object.keys(specs).sort();
+        charts.spec.data.labels = sKeys;
+        charts.spec.data.datasets[0].data = sKeys.map(k => specs[k].open);
+        charts.spec.data.datasets[1].data = sKeys.map(k => specs[k].progress);
+        charts.spec.update();
+
+        const weekLabels = Object.keys(weeksPrio).sort();
+        charts.trend.data.labels = weekLabels;
+        charts.trend.data.datasets[0].data = weekLabels.map(w => weeksPrio[w]['Crítica']);
+        charts.trend.data.datasets[1].data = weekLabels.map(w => weeksPrio[w]['Alta']);
+        charts.trend.data.datasets[2].data = weekLabels.map(w => weeksPrio[w]['Media']);
+        charts.trend.data.datasets[3].data = weekLabels.map(w => weeksPrio[w]['Baja']);
+        charts.trend.update();
+
+        const dSorted = Object.entries(dealers).sort((a,b) => b[1]-a[1]).slice(0, 10);
+        charts.dealer.data.labels = dSorted.map(x => x[0]);
+        charts.dealer.data.datasets[0].data = dSorted.map(x => x[1]);
+        charts.dealer.update();
+
+        const aSorted = Object.entries(nextActionsCounts).sort((a,b) => b[1]-a[1]).slice(0, 8);
+        charts.nextActions.data.labels = aSorted.map(x => x[0]);
+        charts.nextActions.data.datasets[0].data = aSorted.map(x => x[1]);
+        charts.nextActions.update();
+
+        // HEATMAP EN AZUL PROFUNDO (MANDATORIO)
+        const hwKeys = Object.keys(heat).sort((a,b) => {
+            const sumA = Object.values(heat[a]).reduce((x,y)=>x+y,0);
+            const sumB = Object.values(heat[b]).reduce((x,y)=>x+y,0);
+            return sumB - sumA;
+        }).slice(0, 12);
+        const zValues = hwKeys.map(h => priosLabels.map(p => heat[h][p]));
+        
+        Plotly.newPlot('heatmap', [{
+            z: zValues, x: priosLabels, y: hwKeys, type: 'heatmap',
+            colorscale: [
+                [0, '#0F172A'],    // Azul Oscuro
+                [0.5, '#1E3A8A'],  // Azul Real
+                [1, '#1D4ED8']     // Azul Cobalto (Criticidad máxima)
+            ], 
+            showscale: true
+        }], {
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { t: 5, r: 20, b: 35, l: 120 },
+            font: { color: '#94A3B8', size: 10 },
+            xaxis: { side: 'bottom', gridcolor: '#1E293B' },
+            yaxis: { gridcolor: '#1E293B' }
+        }, { displayModeBar: false });
+    }
+
+    function takeSnapshot() {
+        html2canvas(document.getElementById('capture-area'), { backgroundColor: '#020617', scale: 2 }).then(canvas => {
+            const a = document.createElement('a'); a.download = 'Dashboard_Hibrido_V9.png'; a.href = canvas.toDataURL(); a.click();
+        });
+    }
+
+    window.onload = initCharts;
+</script>
+</body>
+</html>
