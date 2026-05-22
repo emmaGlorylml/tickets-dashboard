@@ -51,7 +51,7 @@
 
 <script>
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
 
     const msalConfig = {
 
@@ -70,14 +70,14 @@ window.addEventListener("load", () => {
     const msalInstance =
         new msal.PublicClientApplication(msalConfig);
 
+    await msalInstance.initialize();
+
     const loginBtn =
         document.getElementById("loginBtn");
 
     loginBtn.addEventListener("click", async () => {
 
         try{
-
-            console.log("Iniciando login...");
 
             const response =
                 await msalInstance.loginPopup({
