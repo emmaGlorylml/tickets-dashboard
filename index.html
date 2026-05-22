@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
 
     <meta name="viewport"
-          content="width=device-width, initial-scale=1.0"/>
+          content="width=device-width, initial-scale=1.0">
 
     <title>Tickets Dashboard</title>
 
@@ -20,7 +20,7 @@
         }
 
         button{
-            padding:10px 20px;
+            padding:12px 20px;
             border:none;
             border-radius:8px;
             cursor:pointer;
@@ -43,7 +43,7 @@
 
     <h1>Tickets Dashboard</h1>
 
-    <button onclick="login()">
+    <button id="loginBtn">
         Login Microsoft
     </button>
 
@@ -51,54 +51,62 @@
 
 <script>
 
-const msalConfig = {
+window.addEventListener("load", () => {
 
-    auth: {
+    const msalConfig = {
 
-        clientId: "b74c6a5c-227a-4303-8e1b-ddf48e3bf743",
+        auth: {
 
-        authority:
-            "https://login.microsoftonline.com/28825646-ef41-4c9b-b69e-305d76fc24e5",
+            clientId: "TU_CLIENT_ID",
 
-        redirectUri:
-            "https://emmaglorylml.github.io/tickets-dashboard/"
-    }
-};
+            authority:
+                "https://login.microsoftonline.com/TU_TENANT_ID",
 
-const msalInstance =
-    new msal.PublicClientApplication(msalConfig);
+            redirectUri:
+                "https://TU_USUARIO.github.io/tickets-dashboard/"
+        }
+    };
 
-async function login(){
+    const msalInstance =
+        new msal.PublicClientApplication(msalConfig);
 
-    try{
+    const loginBtn =
+        document.getElementById("loginBtn");
 
-        const loginRequest = {
+    loginBtn.addEventListener("click", async () => {
 
-            scopes: ["User.Read"]
-        };
+        try{
 
-        const response =
-            await msalInstance.loginPopup(loginRequest);
+            console.log("Iniciando login...");
 
-        console.log(response);
+            const response =
+                await msalInstance.loginPopup({
 
-        document.getElementById("userInfo")
-            .innerHTML = `
-                <div class="card">
+                    scopes: ["User.Read"]
+                });
 
-                    <h3>Bienvenido</h3>
+            console.log(response);
 
-                    <p>${response.account.username}</p>
+            document.getElementById("userInfo")
+                .innerHTML = `
 
-                </div>
-            `;
+                    <div class="card">
 
-    }
-    catch(error){
+                        <h3>Bienvenido</h3>
 
-        console.error(error);
-    }
-}
+                        <p>${response.account.username}</p>
+
+                    </div>
+                `;
+        }
+        catch(error){
+
+            console.error(error);
+
+            alert(error);
+        }
+    });
+});
 
 </script>
 
