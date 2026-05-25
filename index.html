@@ -1,11 +1,26 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test MSAL</title>
+</head>
 <body>
 
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<h1>Probando MSAL</h1>
+
+<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 
 <script>
-    console.log("MSAL:", msal);
+window.onload = () => {
+    console.log("MSAL cargado:");
+    console.log(window.msal);
+
+    if(window.msal){
+        alert("MSAL FUNCIONA");
+    } else {
+        alert("MSAL NO CARGO");
+    }
+};
 </script>
 
 </body>
