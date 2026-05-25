@@ -1,26 +1,634 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Test MSAL</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Executive Support Dashboard V9</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="./msal-browser.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #F1F5F9;
+        }
+
+        .card {
+            background-color: #0F172A;
+            border: 1px solid #1E293B;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            border-color: #3B82F6;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            color: #94A3B8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-action {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-blue {
+            background: #3B82F6;
+            color: white;
+        }
+
+        select {
+            background-color: #1E293B;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #3B82F6;
+        }
+
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        th {
+            background-color: #1E293B;
+            color: #94A3B8;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            padding: 10px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #1E293B;
+            font-size: 0.8rem;
+        }
+
+        .kpi-subtext {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
+    </style>
 </head>
-<body>
 
-<h1>Probando MSAL</h1>
+<body class="p-6 lg:p-8" id="capture-area">
 
-<script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+<header class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+        <h1 class="text-2xl font-black tracking-tight text-white italic uppercase">
+            EXECUTIVE <span class="text-blue-500 underline">SUPPORT</span> V9
+        </h1>
+
+        <p class="text-slate-400 text-xs font-medium">
+            Dashboard conectado a Microsoft Lists
+        </p>
+    </div>
+
+    <div class="flex gap-3">
+        <button onclick="loadSharePointData()" class="btn-action btn-blue">
+            🔄 Cargar Tickets
+        </button>
+
+        <button onclick="takeSnapshot()" class="btn-action btn-blue">
+            🖼️ Guardar Imagen
+        </button>
+    </div>
+</header>
+
+<!-- FILTROS -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Dealer</label>
+        <select id="filter-dealer" onchange="applyFilters()">
+            <option value="all">Todos</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">País</label>
+        <select id="filter-country" onchange="applyFilters()">
+            <option value="all">Todos</option>
+        </select>
+    </div>
+
+    <div>
+        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Prioridad</label>
+        <select id="filter-prio" onchange="applyFilters()">
+            <option value="all">Todas</option>
+        </select>
+    </div>
+</div>
+
+<!-- KPIS -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+
+    <div class="card border-l-4 border-l-blue-600">
+        <div class="kpi-label">Tickets Totales</div>
+        <div id="kpi-total" class="kpi-value mt-1">0</div>
+    </div>
+
+    <div class="card border-l-4 border-l-red-500">
+        <div class="kpi-label text-red-400">Casos Críticos</div>
+        <div id="kpi-crit" class="kpi-value text-red-500 mt-1">0</div>
+    </div>
+
+    <div class="card border-l-4 border-l-amber-500">
+        <div class="kpi-label text-amber-400">En Progreso</div>
+        <div id="kpi-progress" class="kpi-value text-amber-500 mt-1">0</div>
+    </div>
+
+    <div class="card border-l-4 border-l-emerald-500">
+        <div class="kpi-label text-emerald-400">Top Especialista</div>
+        <div id="kpi-top-spec" class="kpi-value text-emerald-500 mt-1">--</div>
+        <div id="kpi-top-spec-count" class="kpi-subtext">0 asignados</div>
+    </div>
+
+</div>
+
+<!-- GRAFICAS -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+    <div class="card">
+        <h3 class="font-bold text-blue-400 mb-4 uppercase text-[10px] tracking-widest">
+            1. Carga por Especialista
+        </h3>
+        <div style="height:280px">
+            <canvas id="chartSpec"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+            2. Tickets por Semana
+        </h3>
+        <div style="height:280px">
+            <canvas id="chartTrend"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- TABLA -->
+<div class="card overflow-hidden mb-8 border-t-2 border-t-red-600">
+
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="font-bold text-white uppercase text-[10px] tracking-widest">
+            Atención Prioritaria
+        </h3>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table id="data-table">
+
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Especialista</th>
+                    <th>Dealer</th>
+                    <th>Hardware</th>
+                    <th>Prioridad</th>
+                    <th>Siguiente Paso</th>
+                </tr>
+            </thead>
+
+            <tbody id="table-body">
+                <tr>
+                    <td colspan="6" class="text-center py-10 text-slate-500 italic">
+                        Presiona "Cargar Tickets"
+                    </td>
+                </tr>
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
 
 <script>
-window.onload = () => {
-    console.log("MSAL cargado:");
-    console.log(window.msal);
 
-    if(window.msal){
-        alert("MSAL FUNCIONA");
-    } else {
-        alert("MSAL NO CARGO");
+    // =========================
+    // CONFIGURACION AZURE
+    // =========================
+
+    const msalConfig = {
+        auth: {
+            clientId: "b74c6a5c-227a-4303-8e1b-ddf48e3bf743",
+            authority: "https://login.microsoftonline.com/28825646-ef41-4c9b-b69e-305d76fc24e5",
+            redirectUri: window.location.origin
+        }
+    };
+
+    const graphConfig = {
+        scopes: ["Sites.Read.All"]
+    };
+
+    const SITE_ID = "gloryglobal.sharepoint.com,2ffbc070-b8c2-427d-a31c-acdbd27364e1,2f238072-e70a-41b8-a5c3-6935ae72541b";
+    const LIST_ID = "365aac62-d3eb-4846-aa57-ec090d75ac50";
+
+    // =========================
+    // VARIABLES
+    // =========================
+
+    let rawData = [];
+    let charts = {};
+
+    const msalInstance = new msal.PublicClientApplication(msalConfig);
+
+    // =========================
+    // LOGIN
+    // =========================
+
+    async function login() {
+
+        const accounts = msalInstance.getAllAccounts();
+
+        if (accounts.length > 0) {
+            return accounts[0];
+        }
+
+        const response = await msalInstance.loginPopup(graphConfig);
+
+        return response.account;
     }
-};
+
+    async function getAccessToken() {
+
+        const account = await login();
+
+        const response = await msalInstance.acquireTokenSilent({
+            ...graphConfig,
+            account
+        });
+
+        return response.accessToken;
+    }
+
+    // =========================
+    // CARGAR SHAREPOINT
+    // =========================
+
+    async function loadSharePointData() {
+
+        try {
+
+            const token = await getAccessToken();
+
+            const response = await fetch(
+                `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items?expand=fields`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+
+            const data = await response.json();
+
+            console.log(data);
+
+            rawData = data.value.map(mapSharePointItem);
+
+            populateFilterOptions();
+
+            applyFilters();
+
+        } catch (err) {
+
+            console.error(err);
+
+            alert("Error cargando datos de SharePoint");
+        }
+    }
+
+    // =========================
+    // MAPEO SHAREPOINT
+    // =========================
+
+    function mapSharePointItem(item) {
+
+        const f = item.fields;
+
+        return {
+
+            "Ticket Number": f.Title || "",
+
+            "Assigned to": f.AssignedTo || "",
+
+            "Dealer": f.Dealer || "",
+
+            "HW": f.Hardware || "",
+
+            "Prioridad": f.Priority || "",
+
+            "Next Steps": f.NextSteps || "",
+
+            "Status": f.Status || "",
+
+            "Open Request": f.Created || "",
+
+            "Customer": f.Customer || ""
+        };
+    }
+
+    // =========================
+    // CHARTS
+    // =========================
+
+    function initCharts() {
+
+        const commonOptions = {
+            maintainAspectRatio: false,
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#94A3B8'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: '#94A3B8' },
+                    grid: { color: '#1E293B' }
+                },
+                y: {
+                    ticks: { color: '#94A3B8' },
+                    grid: { color: '#1E293B' }
+                }
+            }
+        };
+
+        charts.spec = new Chart(document.getElementById('chartSpec'), {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Tickets',
+                        data: [],
+                        backgroundColor: '#3B82F6'
+                    }
+                ]
+            },
+            options: commonOptions
+        });
+
+        charts.trend = new Chart(document.getElementById('chartTrend'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Tickets',
+                        data: [],
+                        borderColor: '#3B82F6'
+                    }
+                ]
+            },
+            options: commonOptions
+        });
+    }
+
+    // =========================
+    // FILTROS
+    // =========================
+
+    function populateFilterOptions() {
+
+        const dealers = new Set();
+        const countries = new Set();
+        const prios = new Set();
+
+        rawData.forEach(row => {
+
+            if (row.Dealer) dealers.add(row.Dealer);
+            if (row.Prioridad) prios.add(row.Prioridad);
+
+            countries.add(extractCountry(row.Customer || row.Dealer));
+        });
+
+        fillSelect("filter-dealer", dealers);
+        fillSelect("filter-country", countries);
+        fillSelect("filter-prio", prios);
+    }
+
+    function fillSelect(id, set) {
+
+        const el = document.getElementById(id);
+
+        el.innerHTML = `<option value="all">Todos</option>`;
+
+        Array.from(set)
+            .sort()
+            .forEach(v => {
+                el.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+    }
+
+    function applyFilters() {
+
+        const dF = document.getElementById('filter-dealer').value;
+        const cF = document.getElementById('filter-country').value;
+        const pF = document.getElementById('filter-prio').value;
+
+        const filtered = rawData.filter(row => {
+
+            const matchesDealer =
+                dF === 'all' || row.Dealer === dF;
+
+            const matchesCountry =
+                cF === 'all' ||
+                extractCountry(row.Customer || row.Dealer) === cF;
+
+            const matchesPrio =
+                pF === 'all' || row.Prioridad === pF;
+
+            return matchesDealer && matchesCountry && matchesPrio;
+        });
+
+        renderDashboard(filtered);
+    }
+
+    // =========================
+    // RENDER
+    // =========================
+
+    function renderDashboard(data) {
+
+        let critical = 0;
+        let progress = 0;
+
+        const specs = {};
+        const weeks = {};
+
+        data.forEach(row => {
+
+            const status = (row.Status || '').toLowerCase();
+            const spec = row['Assigned to'] || 'Sin asignar';
+
+            if ((row.Prioridad || '').includes('Crít')) {
+                critical++;
+            }
+
+            if (status.includes('progres')) {
+                progress++;
+            }
+
+            specs[spec] = (specs[spec] || 0) + 1;
+
+            const week = "Semana Actual";
+
+            weeks[week] = (weeks[week] || 0) + 1;
+        });
+
+        // KPIS
+
+        document.getElementById('kpi-total').innerText = data.length;
+        document.getElementById('kpi-crit').innerText = critical;
+        document.getElementById('kpi-progress').innerText = progress;
+
+        const topSpec = Object.entries(specs)
+            .sort((a, b) => b[1] - a[1])[0];
+
+        if (topSpec) {
+
+            document.getElementById('kpi-top-spec').innerText = topSpec[0];
+
+            document.getElementById('kpi-top-spec-count').innerText =
+                `${topSpec[1]} asignados`;
+        }
+
+        // TABLA
+
+        const tbody = document.getElementById('table-body');
+
+        tbody.innerHTML = '';
+
+        data.slice(0, 10).forEach(row => {
+
+            tbody.innerHTML += `
+                <tr>
+                    <td class="text-blue-400 font-mono font-bold">
+                        ${row['Ticket Number']}
+                    </td>
+
+                    <td>${row['Assigned to']}</td>
+
+                    <td>${row.Dealer}</td>
+
+                    <td>${row.HW}</td>
+
+                    <td>
+                        <span class="status-pill bg-red-500/20 text-red-400">
+                            ${row.Prioridad}
+                        </span>
+                    </td>
+
+                    <td>${row['Next Steps']}</td>
+                </tr>
+            `;
+        });
+
+        // CHARTS
+
+        charts.spec.data.labels = Object.keys(specs);
+
+        charts.spec.data.datasets[0].data =
+            Object.values(specs);
+
+        charts.spec.update();
+
+        charts.trend.data.labels =
+            Object.keys(weeks);
+
+        charts.trend.data.datasets[0].data =
+            Object.values(weeks);
+
+        charts.trend.update();
+    }
+
+    // =========================
+    // HELPERS
+    // =========================
+
+    function extractCountry(str) {
+
+        if (!str) return "N/A";
+
+        const low = str.toLowerCase();
+
+        if (low.includes("mex")) return "México";
+        if (low.includes("col")) return "Colombia";
+        if (low.includes("per")) return "Perú";
+        if (low.includes("bra")) return "Brasil";
+
+        return "Otro";
+    }
+
+    function takeSnapshot() {
+
+        html2canvas(
+            document.getElementById('capture-area'),
+            {
+                backgroundColor: '#020617',
+                scale: 2
+            }
+        ).then(canvas => {
+
+            const a = document.createElement('a');
+
+            a.download = 'dashboard.png';
+
+            a.href = canvas.toDataURL();
+
+            a.click();
+        });
+    }
+
+    // =========================
+    // INIT
+    // =========================
+
+    window.onload = initCharts;
+
 </script>
 
 </body>
