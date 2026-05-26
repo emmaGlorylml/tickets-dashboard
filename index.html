@@ -245,23 +245,11 @@
 <script>
 
     // =========================
-    // CONFIGURACION AZURE
+    // CONFIGURACION JSON
     // =========================
 
-    const msalConfig = {
-        auth: {
-            clientId: "b74c6a5c-227a-4303-8e1b-ddf48e3bf743",
-            authority: "https://login.microsoftonline.com/28825646-ef41-4c9b-b69e-305d76fc24e5",
-            redirectUri: window.location.href
-        }
-    };
-
-    const graphConfig = {
-        scopes: ["Sites.Read.All"]
-    };
-
-    const SITE_ID = "gloryglobal.sharepoint.com,2ffbc070-b8c2-427d-a31c-acdbd27364e1,2f238072-e70a-41b8-a5c3-6935ae72541b";
-    const LIST_ID = "365aac62-d3eb-4846-aa57-ec090d75ac50";
+    // URL DEL JSON
+    const JSON_URL = "./tickets.json";
 
     // =========================
     // VARIABLES
@@ -270,61 +258,25 @@
     let rawData = [];
     let charts = {};
 
-    const msalInstance = new msal.PublicClientApplication(msalConfig);
-
     // =========================
-    // LOGIN
-    // =========================
-
-    async function login() {
-
-        const accounts = msalInstance.getAllAccounts();
-
-        if (accounts.length > 0) {
-            return accounts[0];
-        }
-
-        const response = await msalInstance.loginPopup(graphConfig);
-
-        return response.account;
-    }
-
-    async function getAccessToken() {
-
-        const account = await login();
-
-        const response = await msalInstance.acquireTokenSilent({
-            ...graphConfig,
-            account
-        });
-
-        return response.accessToken;
-    }
-
-    // =========================
-    // CARGAR SHAREPOINT
+    // CARGAR JSON
     // =========================
 
     async function loadSharePointData() {
 
         try {
 
-            const token = await getAccessToken();
+            const response = await fetch(JSON_URL);
 
-            const response = await fetch(
-                `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/lists/${LIST_ID}/items?expand=fields`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+            if (!response.ok) {
+                throw new Error("No se pudo cargar el JSON");
+            }
 
             const data = await response.json();
 
             console.log(data);
 
-            rawData = data.value.map(mapSharePointItem);
+            rawData = data.map(mapJsonItem);
 
             populateFilterOptions();
 
@@ -334,37 +286,35 @@
 
             console.error(err);
 
-            alert("Error cargando datos de SharePoint");
+            alert("Error cargando datos desde el JSON");
         }
     }
 
     // =========================
-    // MAPEO SHAREPOINT
+    // MAPEO JSON
     // =========================
 
-    function mapSharePointItem(item) {
-
-        const f = item.fields;
+    function mapJsonItem(item) {
 
         return {
 
-            "Ticket Number": f.Title || "",
+            "Ticket Number": item.TicketNumber || "",
 
-            "Assigned to": f.AssignedTo || "",
+            "Assigned to": item.AssignedTo || "Sin asignar",
 
-            "Dealer": f.Dealer || "",
+            "Dealer": item.Dealer || "",
 
-            "HW": f.Hardware || "",
+            "HW": item.Hadware || "",
 
-            "Prioridad": f.Priority || "",
+            "Prioridad": item.Priority?.Value || "",
 
-            "Next Steps": f.NextSteps || "",
+            "Next Steps": item.NextSteps || "",
 
-            "Status": f.Status || "",
+            "Status": item.Status?.Value || "",
 
-            "Open Request": f.Created || "",
+            "Open Request": item.OpenRequest || "",
 
-            "Customer": f.Customer || ""
+            "Customer": item.Customer || ""
         };
     }
 
@@ -504,11 +454,11 @@
             const status = (row.Status || '').toLowerCase();
             const spec = row['Assigned to'] || 'Sin asignar';
 
-            if ((row.Prioridad || '').includes('Crít')) {
+            if ((row.Prioridad || '').toLowerCase().includes('critical')) {
                 critical++;
             }
 
-            if (status.includes('progres')) {
+            if (status.includes('progress')) {
                 progress++;
             }
 
@@ -627,7 +577,12 @@
     // INIT
     // =========================
 
-    window.onload = initCharts;
+    window.onload = () => {
+
+        initCharts();
+
+        loadSharePointData();
+    };
 
 </script>
 
