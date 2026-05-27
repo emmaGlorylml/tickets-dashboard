@@ -266,7 +266,9 @@
 
         try {
 
-            const response = await fetch(JSON_URL);
+            const response = await fetch(`${JSON_URL}?t=${new Date().getTime()}`, {
+                cache: "no-store"
+            });
 
             if (!response.ok) {
                 throw new Error("No se pudo cargar el JSON");
