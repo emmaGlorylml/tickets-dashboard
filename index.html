@@ -439,6 +439,35 @@
         renderDashboard(filtered);
     }
 
+    //=========================
+    //COLORS
+    //=========================
+    function getPriorityClass(priority) {
+
+    if (!priority) {
+        return "";
+    }
+
+    const p = priority.toLowerCase();
+
+    if (p.includes("critical") || p.includes("critica")) {
+        return "bg-red-500/20 text-red-400";
+    }
+
+    if (p.includes("high") || p.includes("alta")) {
+        return "bg-yellow-500/20 text-yellow-400";
+    }
+
+    if (p.includes("medium") || p.includes("media")) {
+        return "bg-blue-500/20 text-blue-400";
+    }
+
+    if (p.includes("low") || p.includes("baja")) {
+        return "bg-green-500/20 text-green-400";
+    }
+
+    return "";
+}
     // =========================
     // RENDER
     // =========================
@@ -509,7 +538,7 @@
                     <td>${row.HW}</td>
 
                     <td>
-                        <span class="status-pill bg-red-500/20 text-red-400">
+                        <span class="status-pill ${getPriorityClass(row.Prioridad)}">
                             ${row.Prioridad}
                         </span>
                     </td>
@@ -590,3 +619,4 @@
 
 </body>
 </html>
+
