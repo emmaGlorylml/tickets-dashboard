@@ -223,7 +223,7 @@
                     <th>Ticket</th>
                     <th>Especialista</th>
                     <th>Dealer</th>
-                    <th>Hardware</th>
+                    <th>Asset</th>
                     <th>Prioridad</th>
                     <th>Siguiente Paso</th>
                 </tr>
@@ -306,7 +306,7 @@
 
             "Dealer": item.Dealer || "",
 
-            "HW": item.Hadware?.Value || "",
+            "Asset": item.Asset?.Value || "",
 
             "Prioridad": item.Priority?.Value || "",
 
@@ -535,7 +535,7 @@
 
                     <td>${row.Dealer}</td>
 
-                    <td>${row.HW}</td>
+                    <td>${row.Asset}</td>
 
                     <td>
                         <span class="status-pill ${getPriorityClass(row.Prioridad)}">
