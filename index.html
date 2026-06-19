@@ -316,7 +316,9 @@
 
             "Open Request": item.OpenRequest || "",
 
-            "Customer": item.Customer || ""
+            "Customer": item.Customer || "", 
+
+            "Country": item.Country || ""
         };
     }
 
@@ -428,7 +430,7 @@
 
             const matchesCountry =
                 cF === 'all' ||
-                extractCountry(row.Customer || row.Dealer) === cF;
+                extractCountry(row.Contry) === cF;
 
             const matchesPrio =
                 pF === 'all' || row.Prioridad === pF;
