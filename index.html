@@ -396,7 +396,7 @@
             if (row.Dealer) dealers.add(row.Dealer);
             if (row.Prioridad) prios.add(row.Prioridad);
 
-            countries.add(extractCountry(row.Customer || row.Dealer));
+            countries.add(extractCountry(row.Country));
         });
 
         fillSelect("filter-dealer", dealers);
