@@ -205,6 +205,30 @@
     </div>
 
 </div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="card">
+        <h3 class="font-bold text-slate-400 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-slate-400 rounded-full"></span> 3. Participación por Dealer (Top 10)
+        </h3>
+        <div style="height:280px"><canvas id="chartDealer"></canvas></div>
+    </div>
+    <div class="card">
+        <h3 class="font-bold text-indigo-400 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-indigo-400 rounded-full"></span> 4. Distribución de Next Actions
+        </h3>
+        <div style="height:280px"><canvas id="chartNextActions"></canvas></div>
+    </div>
+</div>
+
+<!-- Mapa de Calor (SOLO ESTE EN AZUL PROFUNDO) -->
+<div class="grid grid-cols-1 gap-6 mb-8">
+    <div class="card border-t-2 border-t-blue-900">
+        <h3 class="font-bold text-blue-300 mb-4 uppercase text-[10px] tracking-widest flex items-center gap-2">
+            <span class="w-2 h-2 bg-blue-900 rounded-full"></span> 5. Mapa de Calor (Crítico: Azul Cobalto a Marino)
+        </h3>
+        <div id="heatmap" style="height:350px"></div>
+    </div>
+</div>
 
 <!-- TABLA -->
 <div class="card overflow-hidden mb-8 border-t-2 border-t-red-600">
@@ -276,7 +300,6 @@
 
             const data = await response.json();
 
-            console.log(data);
 
             rawData = data.map(mapJsonItem);
 
@@ -325,60 +348,95 @@
     // =========================
     // CHARTS
     // =========================
+        const PRIO_COLORS = {
+        'Critical': '#EF4444', // Rojo
+        'High': '#F59E0B',    // Ambar
+        'Medium': '#3B82F6',   // Azul
+        'Low': '#10B981'     // Esmeralda
+    };
+    const MULTI_COLORS = ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#F43F5E', '#10B981', '#F59E0B', '#06B6D4', '#64748B'];
 
     function initCharts() {
-
         const commonOptions = {
             maintainAspectRatio: false,
             responsive: true,
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#94A3B8'
-                    }
-                }
+            plugins: { 
+                legend: { position: 'bottom', labels: { color: '#94A3B8', font: { size: 10 }, padding: 10 } } 
             },
             scales: {
-                x: {
-                    ticks: { color: '#94A3B8' },
-                    grid: { color: '#1E293B' }
-                },
-                y: {
-                    ticks: { color: '#94A3B8' },
-                    grid: { color: '#1E293B' }
-                }
+                x: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+                y: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } }
             }
         };
 
         charts.spec = new Chart(document.getElementById('chartSpec'), {
             type: 'bar',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Tickets',
-                        data: [],
-                        backgroundColor: '#3B82F6'
-                    }
-                ]
-            },
-            options: commonOptions
+            options: { ...commonOptions, indexAxis: 'y' },
+            data: { labels: [], datasets: [
+                { label: 'En progreso', backgroundColor: '#F59E0B', data: [] },
+                { label: 'Abierto', backgroundColor: '#3B82F6', data: [] }
+            ]}
         });
 
         charts.trend = new Chart(document.getElementById('chartTrend'), {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [
-                    {
-                        label: 'Tickets',
-                        data: [],
-                        borderColor: '#3B82F6'
-                    }
-                ]
+            type: 'bar',
+            options: { 
+                ...commonOptions,
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { color: '#94A3B8' } },
+                    y: { stacked: true, grid: { color: '#1E293B' }, ticks: { color: '#94A3B8' } }
+                }
             },
-            options: commonOptions
+            data: { 
+                labels: [], 
+                datasets: [
+                    { label: 'Critical', backgroundColor: PRIO_COLORS['Critical'], data: [] },
+                    { label: 'High', backgroundColor: PRIO_COLORS['High'], data: [] },
+                    { label: 'Medium', backgroundColor: PRIO_COLORS['Medium'], data: [] },
+                    { label: 'Low', backgroundColor: PRIO_COLORS['Low'], data: [] }
+                ] 
+            }
         });
+
+        charts.dealer = new Chart(document.getElementById('chartDealer'), {
+            type: 'pie',
+            options: { 
+                ...commonOptions, 
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            },
+            data: { labels: [], datasets: [{ label: 'Tickets', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        });
+
+        charts.nextActions = new Chart(document.getElementById('chartNextActions'), {
+            type: 'doughnut',
+            options: { 
+                ...commonOptions,
+                cutout: '65%',
+                scales: { x: { display: false }, y: { display: false } },
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 9 } } }
+                }
+            },
+            data: { labels: [], datasets: [{ label: 'Frecuencia', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        });
+    }
+        
+    function getWeekNumber(d) {
+        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        return d.getUTCFullYear() + "-W" + (weekNo < 10 ? '0' + weekNo : weekNo);
+    }
+
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split(' ')[0].split('/');
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0]);
+        return new Date(dateStr);
     }
 
     // =========================
@@ -475,48 +533,87 @@
     // =========================
 
     function renderDashboard(data) {
+        //console.log(data);
 
         let critical = 0;
         let progress = 0;
 
-        const specs = {};
-        const weeks = {};
+        // const specs = {};
+         const weeks = {};
+
+        // data.forEach(row => {
+
+        //     const status = (row.Status || '').toLowerCase();
+        //     const spec = row['Assigned to'] || 'Sin asignar';
+
+        //     if ((row.Prioridad || '').toLowerCase().includes('critical')) {
+        //         critical++;
+        //     }
+
+        //     if (status.includes('progress')) {
+        //         progress++;
+        //     }
+
+        //     specs[spec] = (specs[spec] || 0) + 1;
+
+        //     const week = "Semana Actual";
+
+        //     weeks[week] = (weeks[week] || 0) + 1;
+        // });
+        // console.log(data);
+        const specs = {}, dealers = {}, heat = {}, weeksPrio = {}, nextActionsCounts = {};
+        const priosLabels = ['Low', 'Medium', 'High', 'Critical'];
+        let crit = 0, prog = 0;
 
         data.forEach(row => {
-
-            const status = (row.Status || '').toLowerCase();
+            // console.log(row);
+            const st = (row.Status || row.Status || '').toLowerCase();
             const spec = row['Assigned to'] || 'Sin asignar';
+            const prioFull = row.Prioridad || 'Media';
+            const hw = row.Asset || 'Otro';
+            const dlr = row.Dealer || 'Desconocido';
+            const action = row['Next Steps'] || 'Sin definir';
+            
+            const pKey = priosLabels.find(p => prioFull.includes(p)) || 'Media';
 
-            if ((row.Prioridad || '').toLowerCase().includes('critical')) {
-                critical++;
+            const dateObj = parseDate(row['Open Request'] || row.Date);
+            if (dateObj && !isNaN(dateObj)) {
+                const wk = getWeekNumber(dateObj);
+                if (!weeksPrio[wk]) weeksPrio[wk] = { 'Critical': 0, 'High': 0, 'Medium': 0, 'Low': 0 };
+                weeksPrio[wk][pKey]++;
             }
 
-            if (status.includes('progress')) {
-                progress++;
+            if (pKey === 'Critical') crit++;
+            if (st.includes('progres')) progress++;
+            if (!specs[spec]) specs[spec] = { open: 0, progress: 0, total: 0 };
+            if (st.includes('progres')) specs[spec].progress++; else specs[spec].open++;
+            specs[spec].total++;
+
+            dealers[dlr] = (dealers[dlr] || 0) + 1;
+
+            if (action !== 'Sin definir') {
+                nextActionsCounts[action] = (nextActionsCounts[action] || 0) + 1;
             }
 
-            specs[spec] = (specs[spec] || 0) + 1;
-
-            const week = "Semana Actual";
-
-            weeks[week] = (weeks[week] || 0) + 1;
+            if (!heat[hw]) heat[hw] = { 'Low': 0, 'Medium': 0, 'High': 0, 'Critical': 0 };
+            heat[hw][pKey]++;
         });
 
         // KPIS
 
         document.getElementById('kpi-total').innerText = data.length;
-        document.getElementById('kpi-crit').innerText = critical;
+        document.getElementById('kpi-crit').innerText = crit;
         document.getElementById('kpi-progress').innerText = progress;
 
         const topSpec = Object.entries(specs)
             .sort((a, b) => b[1] - a[1])[0];
-
+            console.log(topSpec)
         if (topSpec) {
 
             document.getElementById('kpi-top-spec').innerText = topSpec[0];
 
             document.getElementById('kpi-top-spec-count').innerText =
-                `${topSpec[1]} asignados`;
+                `${topSpec[1].total} asignados`;
         }
 
         // TABLA
@@ -550,22 +647,53 @@
             `;
         });
 
-        // CHARTS
-
-        charts.spec.data.labels = Object.keys(specs);
-
-        charts.spec.data.datasets[0].data =
-            Object.values(specs);
-
+        // Actualizar Gráficas
+        
+        const sKeys = Object.keys(specs).sort();
+        charts.spec.data.labels = sKeys;
+        charts.spec.data.datasets[0].data = sKeys.map(k => specs[k].progress);
+        charts.spec.data.datasets[1].data = sKeys.map(k => specs[k].open);
+        console.log(charts.spec.data.datasets);
         charts.spec.update();
 
-        charts.trend.data.labels =
-            Object.keys(weeks);
-
-        charts.trend.data.datasets[0].data =
-            Object.values(weeks);
-
+        const weekLabels = Object.keys(weeksPrio).sort();
+        charts.trend.data.labels = weekLabels;
+        charts.trend.data.datasets[0].data = weekLabels.map(w => weeksPrio[w]['Critical']);
+        charts.trend.data.datasets[1].data = weekLabels.map(w => weeksPrio[w]['High']);
+        charts.trend.data.datasets[2].data = weekLabels.map(w => weeksPrio[w]['Medium']);
+        charts.trend.data.datasets[3].data = weekLabels.map(w => weeksPrio[w]['Low']);
         charts.trend.update();
+        const dSorted = Object.entries(dealers).sort((a,b) => b[1]-a[1]).slice(0, 10);
+        charts.dealer.data.labels = dSorted.map(x => x[0]);
+        charts.dealer.data.datasets[0].data = dSorted.map(x => x[1]);
+        charts.dealer.update();
+
+        const aSorted = Object.entries(nextActionsCounts).sort((a,b) => b[1]-a[1]).slice(0, 8);
+        charts.nextActions.data.labels = aSorted.map(x => x[0]);
+        charts.nextActions.data.datasets[0].data = aSorted.map(x => x[1]);
+        charts.nextActions.update();
+                const hwKeys = Object.keys(heat).sort((a,b) => {
+            const sumA = Object.values(heat[a]).reduce((x,y)=>x+y,0);
+            const sumB = Object.values(heat[b]).reduce((x,y)=>x+y,0);
+            return sumB - sumA;
+        }).slice(0, 12);
+        const zValues = hwKeys.map(h => priosLabels.map(p => heat[h][p]));
+        
+        Plotly.newPlot('heatmap', [{
+            z: zValues, x: priosLabels, y: hwKeys, type: 'heatmap',
+            colorscale: [
+                [0, '#0F172A'],    // Azul Oscuro
+                [0.5, '#1E3A8A'],  // Azul Real
+                [1, '#1D4ED8']     // Azul Cobalto (Criticidad máxima)
+            ], 
+            showscale: true
+        }], {
+            paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+            margin: { t: 5, r: 20, b: 35, l: 120 },
+            font: { color: '#94A3B8', size: 10 },
+            xaxis: { side: 'bottom', gridcolor: '#1E293B' },
+            yaxis: { gridcolor: '#1E293B' }
+        }, { displayModeBar: false });
     }
 
     // =========================
@@ -634,4 +762,3 @@
 
 </body>
 </html>
-
