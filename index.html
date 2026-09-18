@@ -130,6 +130,10 @@
         <button onclick="takeSnapshot()" class="btn-action btn-blue">
             🖼️ Guardar Imagen
         </button>
+
+        <button onclick="mostrarReporte()" class="btn-action btn-blue">
+            📊 Generar reporte
+        </button>
     </div>
 </header>
 
@@ -747,6 +751,29 @@
         });
     }
 
+    function mostrarReporte() {
+    const img = document.createElement('img');
+    img.src = '/reporte.jpg';
+    img.style.maxWidth = '90%';
+    img.style.maxHeight = '90%';
+
+    const modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.background = 'rgba(0,0,0,0.8)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+
+    modal.appendChild(img);
+
+    modal.onclick = () => modal.remove();
+
+    document.body.appendChild(modal);
+}
     // =========================
     // INIT
     // =========================
