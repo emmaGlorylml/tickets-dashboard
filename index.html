@@ -655,7 +655,6 @@
             tbody.innerHTML = '';
             data
                 .filter(row => ['High', 'Critical'].includes(row.Prioridad))
-                .slice(0, 10)
                 .forEach(row => {
                     tbody.innerHTML += `
                     <tr>
