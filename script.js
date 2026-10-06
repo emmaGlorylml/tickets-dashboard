@@ -340,6 +340,8 @@ function renderDashboard(data) {
     data
         .filter(row => ['High', 'Critical'].includes(row.Prioridad))
         .forEach(row => {
+            const sla = getSLAStatus(row['Open Request']);
+            const slaClass = getSLAClass(row['Open Request']);
             tbody.innerHTML += `
                     <tr>
                         <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Ticket Number']} </td>
@@ -352,6 +354,10 @@ function renderDashboard(data) {
                             </span>
                         </td>
                         <td> ${row['Next Steps']} </td>
+                        <td> 
+                        <div class=" status-pill ${slaClass}">${sla}</div>
+                        </td>
+                        
                     </tr>
                     `;
         });
@@ -407,6 +413,41 @@ function renderDashboard(data) {
 // =========================
 // HELPERS
 // =========================
+function getSLAStatus(openRequest) {
+    const openDate = new Date(openRequest);
+    const today = new Date();
+
+    // Ignorar horas para comparar solo fechas
+    openDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.floor(
+        (today - openDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays <= 1) return "1 Day";
+    if (diffDays === 2) return "2 Days";
+    if (diffDays === 3) return "3 Days";
+    return "+ 3 Days";
+}
+
+function getSLAClass(openRequest) {
+    const openDate = new Date(openRequest);
+    const today = new Date();
+
+    openDate.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+
+    const diffDays = Math.floor(
+        (today - openDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (diffDays <= 1) return "bg-green-500";
+    if (diffDays === 2) return "bg-yellow-500";
+    if (diffDays === 3) return "bg-orange-500";
+    return "bg-red-500";
+}
+
 
 function extractCountry(str) {
 
