@@ -1,0 +1,93 @@
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: #F1F5F9;
+        }
+
+        .card {
+            background-color: #0F172A;
+            border: 1px solid #1E293B;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+
+        .card:hover {
+            border-color: #3B82F6;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .kpi-label {
+            font-size: 0.7rem;
+            color: #94A3B8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-action {
+            border-radius: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-blue {
+            background: #3B82F6;
+            color: white;
+        }
+
+        select {
+            background-color: #1E293B;
+            color: white;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            font-size: 0.875rem;
+            width: 100%;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: #3B82F6;
+        }
+
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+        }
+
+        th {
+            background-color: #1E293B;
+            color: #94A3B8;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            padding: 10px;
+            text-align: left;
+        }
+
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #1E293B;
+            font-size: 0.8rem;
+        }
+
+        .kpi-subtext {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 4px;
+        }
