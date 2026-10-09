@@ -340,6 +340,7 @@ function renderDashboard(data) {
     data
         .filter(row => ['High', 'Critical'].includes(row.Prioridad))
         .forEach(row => {
+            console.log(row);
             const sla = getSLAStatus(row['Open Request']);
             const slaClass = getSLAClass(row['Open Request']);
             tbody.innerHTML += `

@@ -48,7 +48,7 @@ body {
     color: white;
 }
 
-select {
+select, input {
     background-color: #1E293B;
     color: white;
     border: 1px solid #334155;
@@ -90,4 +90,14 @@ td {
     font-size: 0.75rem;
     color: #64748b;
     margin-top: 4px;
+}
+
+.title-type-sla{
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
+}
+
+.img-flag{
+    margin-right: 1rem;
 }

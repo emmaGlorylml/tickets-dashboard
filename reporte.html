@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Executive Support Rerpor V9</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="./msal-browser.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
+
+
+</head>
+
+<body class="p-6 lg:p-8" id="capture-area">
+
+    <header class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-black tracking-tight text-white italic uppercase">
+                EXECUTIVE <span class="text-blue-500 underline">SUPPORT</span> V9
+            </h1>
+
+            <p class="text-slate-400 text-xs font-medium">
+                Reporte conectado a Microsoft Lists
+            </p>
+        </div>
+
+        <div class="flex gap-3">
+
+            <button onclick="takeSnapshot()" class="btn-action btn-blue">
+                🖼️ Guardar Imagen
+            </button>
+
+            <a href="index.html" class="btn-action btn-blue">
+                📊 Ir a dashboard
+            </a>
+        </div>
+    </header>
+
+    <!-- FILTROS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+
+        <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">
+                Fecha de inicio
+            </label>
+            <input type="date" id="filter-start-date" onchange="applyFiltersDate()" class="w-full">
+        </div>
+
+        <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">
+                Fecha final
+            </label>
+            <input type="date" id="filter-end-date" onchange="applyFiltersDate()" class="w-full">
+        </div>
+
+    </div>
+
+    <!-- KPIS -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+
+        <div class="card border-l-4 border-l-blue-600 flex items-center ">
+            <img src="global.png" alt="" srcset=""
+            class="w-12 h-12 rounded-full object-cover img-flag">
+            <div>
+                <div class="kpi-label text-blue-500">SLA GLOBAL</div>
+                <div id="kpi-total" class="kpi-value mt-1">94.8%</div>
+            </div>
+        </div>
+
+        <div class="card border-l-4 border-l-green-500 flex items-center">
+            <img src="Mex.png" alt="" srcset=""
+            class="w-12 h-12 rounded-full object-cover img-flag">
+            <div>
+                <div class="kpi-label text-blue-500">MÉXICO</div>
+                <div id="kpi-crit" class="kpi-value mt-1">96.2%</div>
+            </div>
+        </div>
+
+        <div class="card border-l-4 border-l-yellow-500 flex items-center">
+            <img src="col.png" alt="" srcset=""
+            class="w-12 h-12 rounded-full object-cover img-flag">
+            <div>
+            <div class="kpi-label text-blue-500">COLOMBIA</div>
+            <div id="kpi-crit" class="kpi-value mt-1">92.1%</div>
+            </div>
+        </div>
+
+        <div class="card border-l-4 border-l-purple-500 flex items-center">
+                        <img src="latam.jpg" alt="" srcset=""
+            class="w-12 h-12 rounded-full object-cover img-flag">
+            <div>
+            <div class="kpi-label text-blue-500">LATAM</div>
+            <div id="kpi-crit" class="kpi-value mt-1">95.5%</div>
+            </div>
+        </div>
+
+    </div>
+    <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
+        SLA de respuesta
+    </h2>
+
+    <!-- Tablas de SLAs -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por país
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>País</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">México</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Colombia</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Rep. Dominicana</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Bolivia</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Salvador</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Guatemala</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Perú</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Venezuela</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Paraguay</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Ecuador</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Brazil</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">LATAM</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Uruguay</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Chile</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Argentina</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Pánama</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Curazao</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Trinidad y Tobago</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Argentina</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Costa Rica</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por dealer
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>Dealer</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Marco</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Emmanuel</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Camilo</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Adán</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Iván</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Martín</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Jamil</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por asset
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX300</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CI50</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX10</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX100</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CI200</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GLR</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GTR</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">C24</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">S22</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">K22</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">K27</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">WR-500</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">WR-90</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">MACH-6</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">MACH-9</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">SCW-20</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">DE-70</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFS-220</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFB-800</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFS-120</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">UWF</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+        <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
+        SLA de solución
+    </h2>
+
+    <!-- Tablas de SLAs -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por país
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>País</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">México</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Colombia</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Rep. Dominicana</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Bolivia</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Salvador</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Guatemala</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Perú</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Venezuela</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Paraguay</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Ecuador</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Brazil</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">LATAM</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Uruguay</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Chile</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Argentina</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Pánama</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Curazao</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Trinidad y Tobago</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Argentina</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Costa Rica</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por dealer
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>Dealer</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Marco</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Emmanuel</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Camilo</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Adán</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Iván</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Martín</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">Jamil</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                Cumplimiento de SLA por asset
+            </h3>
+            <div>
+                <div class="overflow-x-auto w-full">
+                    <table id="data-table" class="w-full">
+
+                        <thead>
+                            <tr>
+                                <th>Asset</th>
+                                <th>Tickets</th>
+                                <th>Dentro SLA</th>
+                                <th>Fuera SLA</th>
+                                <th>% SLA</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="table-body">
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX300</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CI50</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX10</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CIX100</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">CI200</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GLR</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GTR</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">C24</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">S22</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">K22</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">K27</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">WR-500</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">WR-90</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">MACH-6</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">MACH-9</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">SCW-20</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">DE-70</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFS-220</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-red-500/20 text-red-400">
+                                        82.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFB-800</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        95.9%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">GFS-120</td>
+                                <td>89</td>
+                                <td>82</td>
+                                <td>7</td>
+                                <td>
+                                    <span class="status-pill bg-yellow-500/20 text-yellow-400">
+                                        92.1%
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="font-mono font-bold break-words max-w-xs">UWF</td>
+                                <td>145</td>
+                                <td>139</td>
+                                <td>6</td>
+                                <td>
+                                    <span class="status-pill bg-green-500/20 text-green-400">
+                                        79.9%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Resumen ejecutivo -->
+    <div class="card overflow-hidden mb-8 border-t-2 border-t-blue-600">
+
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-blue-500 uppercase text-[10px] tracking-widest">
+                Resumen Ejecutivo
+            </h3>
+        </div>
+
+        <div class="overflow-x-auto w-full">
+            <table id="data-table" class="w-full">
+
+                <thead>
+                    <tr>
+                        <th>SLA global</th>
+                        <th>Mejor país</th>
+                        <th>Mejor dealer</th>
+                        <th>Mejor asset</th>
+                        <th>Asset con oportunidad</th>
+                        <th>Meta SLA</th>
+                    </tr>
+                </thead>
+
+                <tbody id="table-body">
+                    <tr>
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+
+    <script src="reporte.js"></script>
+
+</body>
+
+</html>
