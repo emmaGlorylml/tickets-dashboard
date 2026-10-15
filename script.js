@@ -52,7 +52,6 @@ async function loadSharePointData() {
 // =========================
 
 function mapJsonItem(item) {
-
     return {
 
         "Ticket Number": item.TicketNumber || "",
@@ -73,7 +72,9 @@ function mapJsonItem(item) {
 
         "Customer": item.Customer || "",
 
-        "Country": item.Country || ""
+        "Country": item.Country || "",
+
+        "AssignmentDate": getAssignmentDate(item.AssignmentDate)
     };
 }
 
@@ -281,7 +282,6 @@ function renderDashboard(data) {
 
     const fourMonthsAgo = new Date();
     fourMonthsAgo.setMonth(fourMonthsAgo.getMonth() - 4);
-    console.log(fourMonthsAgo);
     data.forEach(row => {
         const st = (row.Status || row.Status || '').toLowerCase();
         const spec = row['Assigned to'] || 'Sin asignar';
@@ -289,6 +289,7 @@ function renderDashboard(data) {
         const hw = row.Asset || 'Otro';
         const dlr = row.Dealer || 'Desconocido';
         const action = row['Next Steps'] || 'Sin definir';
+        const assignmentDate = row['AssignmentDate'];
 
         const pKey = priosLabels.find(p => prioFull.includes(p)) || 'Media';
 
@@ -325,7 +326,6 @@ function renderDashboard(data) {
 
     const topSpec = Object.entries(specs)
         .sort((a, b) => b[1] - a[1])[0];
-    console.log(topSpec)
     if (topSpec) {
 
         document.getElementById('kpi-top-spec').innerText = topSpec[0];
@@ -340,8 +340,9 @@ function renderDashboard(data) {
     data
         .filter(row => ['High', 'Critical'].includes(row.Prioridad))
         .forEach(row => {
-            console.log(row);
             const sla = getSLAStatus(row['Open Request']);
+            const assignmentDate = row['AssignmentDate'];
+            console.log(assignmentDate);
             const slaClass = getSLAClass(row['Open Request']);
             tbody.innerHTML += `
                     <tr>
@@ -368,7 +369,6 @@ function renderDashboard(data) {
     charts.spec.data.labels = sKeys;
     charts.spec.data.datasets[0].data = sKeys.map(k => specs[k].progress);
     charts.spec.data.datasets[1].data = sKeys.map(k => specs[k].open);
-    console.log(charts.spec.data.datasets);
     charts.spec.update();
 
     const weekLabels = Object.keys(weeksPrio).sort();
@@ -414,6 +414,19 @@ function renderDashboard(data) {
 // =========================
 // HELPERS
 // =========================
+const getAssignmentDate = (dateValue) => {
+    if (!dateValue) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    return String(dateValue).substring(0, 10);
+};
+
 function getSLAStatus(openRequest) {
     const openDate = new Date(openRequest);
     const today = new Date();
