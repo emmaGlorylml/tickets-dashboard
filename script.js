@@ -74,7 +74,9 @@ function mapJsonItem(item) {
 
         "Country": item.Country || "",
 
-        "AssignmentDate": getAssignmentDate(item.AssignmentDate)
+        "AssignmentDate": getAssignmentDate(item.AssignmentDate),
+
+        "Dispatcher": item.Dispatcher || ""
     };
 }
 
@@ -338,7 +340,7 @@ function renderDashboard(data) {
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
     data
-        .filter(row => ['High', 'Critical'].includes(row.Prioridad))
+        .filter(row => ['High', 'Critical', ''].includes(row.Prioridad))
         .forEach(row => {
             const assignmentDate = row['AssignmentDate'];
             const sla = getSLAStatus(row['Open Request'], assignmentDate);
@@ -346,6 +348,7 @@ function renderDashboard(data) {
             tbody.innerHTML += `
                     <tr>
                         <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Ticket Number']} </td>
+                        <td>${row['Dispatcher']}</td>
                         <td>${row['Assigned to']}</td>
                         <td>${row.Dealer}</td>
                         <td>${row.Asset}</td>
