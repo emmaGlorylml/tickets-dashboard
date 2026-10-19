@@ -78,7 +78,7 @@ function mapJsonItem(item) {
 
         "Dispatcher": item.Dispatcher || "",
 
-        "RequestResolved" : getCurrentDate(item.RequestResolved)
+        "RequestResolved": getCurrentDate(item.RequestResolved)
     };
 }
 
@@ -347,7 +347,7 @@ function renderDashboard(data) {
             const openRequest = row['Open Request'];
             const assignmentDate = row['AssignmentDate'];
             const requestResolved = row['RequestResolved'];
-            const priority = row['Prioridad']; 
+            const priority = row['Prioridad'];
             console.log(priority);
             const slaResponse = GetDifferenceWorkingDays(openRequest, assignmentDate);
             const slaResponseClass = getResponseSLAClass(openRequest, assignmentDate);
