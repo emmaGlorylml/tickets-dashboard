@@ -75,7 +75,21 @@ function mapJsonItem(item) {
         "AssignmentDate": getCurrentDate(item.AssignmentDate),
 
         "Dispatcher": item.Dispatcher || "",
-
+        
         "RequestResolved": getCurrentDate(item.RequestResolved)
     };
 }
+
+//Helpers
+const getCurrentDate = (dateValue) => {
+    if (!dateValue) {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, "0");
+        const day = String(today.getDate()).padStart(2, "0");
+
+        return `${year}-${month}-${day}`;
+    }
+
+    return String(dateValue).substring(0, 10);
+};
