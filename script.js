@@ -344,9 +344,16 @@ function renderDashboard(data) {
     data
         .filter(row => ['High', 'Critical', ''].includes(row.Prioridad))
         .forEach(row => {
+            const openRequest = row['Open Request'];
             const assignmentDate = row['AssignmentDate'];
-            const sla = getSLAStatus(row['Open Request'], assignmentDate);
-            const slaClass = getSLAClass(row['Open Request'], assignmentDate);
+            const requestResolved = row['RequestResolved'];
+            const priority = row['Prioridad']; 
+            console.log(priority);
+            const slaResponse = GetDifferenceWorkingDays(openRequest, assignmentDate);
+            const slaResponseClass = getResponseSLAClass(openRequest, assignmentDate);
+
+            const slaSolution = GetDifferenceWorkingDays(openRequest, requestResolved);
+            // const slaSolutionClass = getSolutionSLAClass(openRequest, requestResolved, Priority);
             tbody.innerHTML += `
                     <tr>
                         <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Ticket Number']} </td>
@@ -361,7 +368,10 @@ function renderDashboard(data) {
                         </td>
                         <td> ${row['Next Steps']} </td>
                         <td> 
-                        <div class=" status-pill ${slaClass}">${sla}</div>
+                        <div class=" status-pill ${slaResponseClass}">${slaResponse}</div>
+                        </td>
+                        <td> 
+                        <div class=" status-pill ${slaSolution}">${slaSolution}</div>
                         </td>
                         
                     </tr>
@@ -431,7 +441,7 @@ const getCurrentDate = (dateValue) => {
     return String(dateValue).substring(0, 10);
 };
 
-function getSLAStatus(openRequest, assignmentDate) {
+function GetDifferenceWorkingDays(openRequest, assignmentDate) {
     const startDate = new Date(openRequest);
     const endDate = assignmentDate
         ? new Date(assignmentDate)
@@ -453,12 +463,10 @@ function getSLAStatus(openRequest, assignmentDate) {
         }
     }
 
-    return businessDays <= 2
-        ? `${businessDays} Day${businessDays !== 1 ? "s" : ""}`
-        : "+ 2 Days";
+    return `${businessDays} Day${businessDays !== 1 ? "s" : ""}`;
 }
 
-function getSLAClass(openRequest, assignmentDate) {
+function getResponseSLAClass(openRequest, assignmentDate) {
     const startDate = new Date(openRequest);
     const endDate = assignmentDate
         ? new Date(assignmentDate)
@@ -484,6 +492,10 @@ function getSLAClass(openRequest, assignmentDate) {
         ? "bg-green-500"
         : "bg-red-500";
 }
+
+// function getSolutionSLAClass(openRequest, requestResolved ){
+//     let numDias = GetDifferenceWorkingDays(openRequest, requestResolved);
+// }
 
 
 function extractCountry(str) {
