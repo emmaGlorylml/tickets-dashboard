@@ -353,7 +353,7 @@ function renderDashboard(data) {
             const slaResponseClass = getResponseSLAClass(openRequest, assignmentDate);
 
             const slaSolution = GetDifferenceWorkingDays(openRequest, requestResolved);
-            // const slaSolutionClass = getSolutionSLAClass(openRequest, requestResolved, Priority);
+            const slaSolutionClass = getSolutionSLAClass(openRequest, requestResolved, priority);
             tbody.innerHTML += `
                     <tr>
                         <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Ticket Number']} </td>
@@ -371,7 +371,7 @@ function renderDashboard(data) {
                         <div class=" status-pill ${slaResponseClass}">${slaResponse}</div>
                         </td>
                         <td> 
-                        <div class=" status-pill ${slaSolution}">${slaSolution}</div>
+                        <div class=" status-pill ${slaSolutionClass}">${slaSolution}</div>
                         </td>
                         
                     </tr>
@@ -493,9 +493,24 @@ function getResponseSLAClass(openRequest, assignmentDate) {
         : "bg-red-500";
 }
 
-// function getSolutionSLAClass(openRequest, requestResolved ){
-//     let numDias = GetDifferenceWorkingDays(openRequest, requestResolved);
-// }
+function getSolutionSLAClass(openRequest, requestResolved, priority) {
+    priority = priority?.trim() || "Critical";
+
+    let numDias = parseInt(
+        GetDifferenceWorkingDays(openRequest, requestResolved),
+        10
+    );
+
+    if (priority === "Critical") {
+        return numDias <= 5 ? "bg-green-500" : "bg-red-500";
+    }
+
+    if (priority === "High") {
+        return numDias <= 10 ? "bg-green-500" : "bg-red-500";
+    }
+
+    return "bg-gray-500";
+}
 
 
 function extractCountry(str) {
