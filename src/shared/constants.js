@@ -12,6 +12,5 @@ const MULTI_COLORS = ['#3B82F6', '#6366F1', '#8B5CF6', '#EC4899', '#F43F5E', '#1
 const HELP_COLORS={
     'Ejes': '#1E293B', //Color de la linea que pinta los ejes en las graficas
     'Labels': '#94A3B8' //Color para las etiquetas que describen las graficas
-
 }
 
