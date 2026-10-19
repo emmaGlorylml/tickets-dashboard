@@ -74,9 +74,11 @@ function mapJsonItem(item) {
 
         "Country": item.Country || "",
 
-        "AssignmentDate": getAssignmentDate(item.AssignmentDate),
+        "AssignmentDate": getCurrentDate(item.AssignmentDate),
 
-        "Dispatcher": item.Dispatcher || ""
+        "Dispatcher": item.Dispatcher || "",
+
+        "RequestResolved" : getCurrentDate(item.RequestResolved)
     };
 }
 
@@ -416,7 +418,7 @@ function renderDashboard(data) {
 // =========================
 // HELPERS
 // =========================
-const getAssignmentDate = (dateValue) => {
+const getCurrentDate = (dateValue) => {
     if (!dateValue) {
         const today = new Date();
         const year = today.getFullYear();
