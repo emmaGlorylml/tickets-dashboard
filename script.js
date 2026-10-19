@@ -539,27 +539,6 @@ function extractCountry(str) {
 
     return "Otro";
 }
-
-function takeSnapshot() {
-
-    html2canvas(
-        document.getElementById('capture-area'),
-        {
-            backgroundColor: '#020617',
-            scale: 2
-        }
-    ).then(canvas => {
-
-        const a = document.createElement('a');
-
-        a.download = 'dashboard.png';
-
-        a.href = canvas.toDataURL();
-
-        a.click();
-    });
-}
-
 function mostrarReporte() {
     const img = document.createElement('img');
     img.src = 'https://emmaglorylml.github.io/tickets-dashboard/reporte.jpg';
