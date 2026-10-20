@@ -1,14 +1,7 @@
-// =========================
-// CONFIGURACION JSON
-// =========================
-
 // URL DEL JSON
 const JSON_URL = "./tickets.json";
 
-// =========================
-// VARIABLES
-// =========================
-
+//Variables
 let rawData = [];
 let charts = {};
 
@@ -29,7 +22,6 @@ async function loadSharePointData() {
         }
 
         const data = await response.json();
-
 
         rawData = data.map(mapJsonItem);
 
@@ -52,7 +44,7 @@ async function loadSharePointData() {
 function mapJsonItem(item) {
     return {
 
-        "Ticket Number": item.TicketNumber || "",
+        "Title": item.TicketNumber || "",
 
         "Assigned to": item.AssignedTo?.Value || "Sin asignar",
 
