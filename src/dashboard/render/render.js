@@ -84,7 +84,7 @@ function renderDashboard(data) {
             const slaSolutionClass = getSolutionSLAClass(openRequest, requestResolved, priority);
             tbody.innerHTML += `
                     <tr>
-                        <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Ticket Number']} </td>
+                        <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Title']} </td>
                         <td>${row['Dispatcher']}</td>
                         <td>${row['Assigned to']}</td>
                         <td>${row.Dealer}</td>

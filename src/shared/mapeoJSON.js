@@ -44,7 +44,7 @@ async function loadSharePointData() {
 function mapJsonItem(item) {
     return {
 
-        "Title": item.TicketNumber || "",
+        "Title": item.Title || "",
 
         "Assigned to": item.AssignedTo?.Value || "Sin asignar",
 
