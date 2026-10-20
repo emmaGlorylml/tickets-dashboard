@@ -7,11 +7,11 @@ function initCharts() {
         maintainAspectRatio: false,
         responsive: true,
         plugins: {
-            legend: { position: 'bottom', labels: { color: HELP_COLORS['Labels'], font: { size: 10 }, padding: 10 } }
+            legend: { position: 'bottom', labels: { color: COLORS.ui.labels, font: { size: 10 }, padding: 10 } }
         },
         scales: {
-            x: { grid: { color: HELP_COLORS['Ejes'] }, ticks: { color: HELP_COLORS['Labels'], font: { size: 9 } } },
-            y: { grid: { color: HELP_COLORS['Ejes'] }, ticks: { color: HELP_COLORS['Labels'], font: { size: 9 } } }
+            x: { grid: { color: COLORS.ui.axis }, ticks: { color: COLORS.ui.labels, font: { size: 9 } } },
+            y: { grid: { color: COLORS.ui.axis }, ticks: { color: COLORS.ui.labels, font: { size: 9 } } }
         }
     };
 
@@ -20,8 +20,8 @@ function initCharts() {
         options: { ...commonOptions, indexAxis: 'y' },
         data: {
             labels: [], datasets: [
-                { label: 'En progreso', backgroundColor: PRIO_COLORS['Medium'], data: [] },
-                { label: 'Abierto', backgroundColor: PRIO_COLORS['High'], data: [] }
+                { label: 'En progreso', backgroundColor: COLORS.priority.Medium, data: [] },
+                { label: 'Abierto', backgroundColor: COLORS.priority.High, data: [] }
             ]
         }
     });
@@ -31,17 +31,17 @@ function initCharts() {
         options: {
             ...commonOptions,
             scales: {
-                x: { stacked: true, grid: { display: false }, ticks: { color: HELP_COLORS['Labels'] } },
-                y: { stacked: true, grid: { color: HELP_COLORS['Ejes'] }, ticks: { color: HELP_COLORS['Labels'] } }
+                x: { stacked: true, grid: { display: false }, ticks: { color: COLORS.ui.labels } },
+                y: { stacked: true, grid: { color: COLORS.ui.axis }, ticks: { color: COLORS.ui.labels } }
             }
         },
         data: {
             labels: [],
             datasets: [
-                { label: 'Critical', backgroundColor: PRIO_COLORS['Critical'], data: [] },
-                { label: 'High', backgroundColor: PRIO_COLORS['High'], data: [] },
-                { label: 'Medium', backgroundColor: PRIO_COLORS['Medium'], data: [] },
-                { label: 'Low', backgroundColor: PRIO_COLORS['Low'], data: [] }
+                { label: 'Critical', backgroundColor: COLORS.priority.Critical, data: [] },
+                { label: 'High', backgroundColor: COLORS.priority.High, data: [] },
+                { label: 'Medium', backgroundColor: COLORS.priority.Medium, data: [] },
+                { label: 'Low', backgroundColor: COLORS.priority.Low, data: [] }
             ]
         }
     });
@@ -52,10 +52,10 @@ function initCharts() {
             ...commonOptions,
             scales: { x: { display: false }, y: { display: false } },
             plugins: {
-                legend: { position: 'right', labels: { color: HELP_COLORS['Labels'], font: { size: 9 } } }
+                legend: { position: 'right', labels: { color: COLORS.ui.labels, font: { size: 9 } } }
             }
         },
-        data: { labels: [], datasets: [{ label: 'Tickets', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        data: { labels: [], datasets: [{ label: 'Tickets', backgroundColor: COLORS.chart, borderWidth: 0, data: [] }] }
     });
 
     charts.nextActions = new Chart(document.getElementById('chartNextActions'), {
@@ -65,10 +65,10 @@ function initCharts() {
             cutout: '65%',
             scales: { x: { display: false }, y: { display: false } },
             plugins: {
-                legend: { position: 'right', labels: { color: HELP_COLORS['Labels'], font: { size: 9 } } }
+                legend: { position: 'right', labels: { color: COLORS.ui.labels, font: { size: 9 } } }
             }
         },
-        data: { labels: [], datasets: [{ label: 'Frecuencia', backgroundColor: MULTI_COLORS, borderWidth: 0, data: [] }] }
+        data: { labels: [], datasets: [{ label: 'Frecuencia', backgroundColor: COLORS.chart, borderWidth: 0, data: [] }] }
     });
 }
 
