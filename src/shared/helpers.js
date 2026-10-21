@@ -54,23 +54,10 @@ function getResponseSLAClass(openRequest, assignmentDate) {
         : COLORS.tailwind.Critical;
 }
 
-function getSolutionSLAClass(openRequest, requestResolved, priority) {
-    priority = priority?.trim() || "Critical";
+function getSolutionSLAClass(InSLAResolved) {
+    let classTailwind = InSLAResolved ? COLORS.tailwind.Low : COLORS.tailwind.Critical;
 
-    let numDias = parseInt(
-        GetDifferenceWorkingDays(openRequest, requestResolved),
-        10
-    );
-
-    if (priority === "Critical") {
-        return numDias <= 5 ? COLORS.tailwind.Low : COLORS.tailwind.Critical;
-    }
-
-    if (priority === "High") {
-        return numDias <= 10 ? COLORS.tailwind.Low : COLORS.tailwind.Critical;
-    }
-
-    return "bg-gray-500";
+    return classTailwind;
 }
 
 

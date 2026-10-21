@@ -21,7 +21,7 @@ function renderDashboard(data) {
         const hw = row.Asset || 'Otro';
         const dlr = row.Dealer || 'Desconocido';
         const action = row['Next Steps'] || 'Sin definir';
-        const assignmentDate = row['AssignmentDate'];
+
 
         const pKey = priosLabels.find(p => prioFull.includes(p)) || 'Media';
 
@@ -76,12 +76,13 @@ function renderDashboard(data) {
             const assignmentDate = row['AssignmentDate'];
             const requestResolved = row['RequestResolved'];
             const priority = row['Prioridad'];
+            const inSLAResolved = row['InSLAResolved'];
             console.log(priority);
             const slaResponse = GetDifferenceWorkingDays(openRequest, assignmentDate);
-            const slaResponseClass = getResponseSLAClass(openRequest, assignmentDate);
+            const slaResponseClass = getResponseSLAClass(row.isIn);
 
             const slaSolution = GetDifferenceWorkingDays(openRequest, requestResolved);
-            const slaSolutionClass = getSolutionSLAClass(openRequest, requestResolved, priority);
+            const slaSolutionClass = getSolutionSLAClass(inSLAResolved);
             tbody.innerHTML += `
                     <tr>
                         <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Title']} </td>
