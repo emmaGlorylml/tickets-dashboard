@@ -77,9 +77,10 @@ function renderDashboard(data) {
             const requestResolved = row['RequestResolved'];
             const priority = row['Prioridad'];
             const inSLAResolved = row['InSLAResolved'];
+            const inSLAResponse = row['InSLAResponse']
             console.log(priority);
             const slaResponse = GetDifferenceWorkingDays(openRequest, assignmentDate);
-            const slaResponseClass = getResponseSLAClass(row.isIn);
+            const slaResponseClass = getResponseSLAClass(inSLAResponse);
 
             const slaSolution = GetDifferenceWorkingDays(openRequest, requestResolved);
             const slaSolutionClass = getSolutionSLAClass(inSLAResolved);

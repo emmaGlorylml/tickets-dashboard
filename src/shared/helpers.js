@@ -27,29 +27,8 @@ function GetDifferenceWorkingDays(openRequest, assignmentDate) {
     return `${businessDays} Day${businessDays !== 1 ? "s" : ""}`;
 }
 
-function getResponseSLAClass(openRequest, assignmentDate) {
-    const startDate = new Date(openRequest);
-    const endDate = assignmentDate
-        ? new Date(assignmentDate)
-        : new Date();
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    let businessDays = 0;
-    let current = new Date(startDate);
-
-    while (current < endDate) {
-        current.setDate(current.getDate() + 1);
-
-        const day = current.getDay(); // 0=Domingo, 6=Sábado
-
-        if (day !== 0 && day !== 6) {
-            businessDays++;
-        }
-    }
-
-    return businessDays <= 2
+function getResponseSLAClass(isInSLAReponse) {
+    return isInSLAReponse
         ? COLORS.tailwind.Low
         : COLORS.tailwind.Critical;
 }
