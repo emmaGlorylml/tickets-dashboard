@@ -144,14 +144,39 @@
     <!-- TABLA -->
     <div class="card overflow-hidden mb-8 border-t-2 border-t-red-600">
 
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2 text-xs uppercase tracking-wider">
             <h3 class="font-bold text-white uppercase text-[10px] tracking-widest">
                 Atención Prioritaria
             </h3>
-        </div>
 
+
+            <label class="text-gray-400">Mostrar</label>
+
+            <select id="rows-per-page" onchange="changeRowsPerPage()">
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+            </select>
+
+            <span>registros</span>
+
+        </div>
+        <br>
         <div class="overflow-x-auto">
+
             <table id="data-table">
+                <colgroup>
+        <col style="width:auto;">
+        <col style="width:15%;">
+        <col style="width:10%;">
+        <col style="width:10%;">
+        <col style="width:10%;">
+        <col style="width:5%;">
+        <col style="width:10%;">
+        <col style="width:7%;">
+        <col style="width:7%;">
+    </colgroup>
 
                 <thead>
                     <tr>
@@ -176,6 +201,21 @@
                 </tbody>
 
             </table>
+            <div class="flex justify-center items-center gap-4 mt-4">
+
+                <button onclick="previousPage()" class="btn-action">
+                    ◀ Anterior
+                </button>
+
+                <span id="page-info">
+                    Página 1
+                </span>
+
+                <button onclick="nextPage()" class="btn-action">
+                    Siguiente ▶
+                </button>
+
+            </div>
         </div>
 
     </div>

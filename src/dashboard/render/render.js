@@ -1,4 +1,10 @@
 // =========================
+// Variables
+// =========================
+let currentPage = 1;
+let rowsPerPage = 10;
+let currentTableData = [];
+// =========================
 // RENDER
 // =========================
 
@@ -67,46 +73,16 @@ function renderDashboard(data) {
     }
 
     // TABLA
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
-    data
-        .filter(row => ['High', 'Critical', ''].includes(row.Prioridad))
-        .forEach(row => {
-            const openRequest = row['Open Request'];
-            const assignmentDate = row['AssignmentDate'];
-            const requestResolved = row['RequestResolved'];
-            const priority = row['Prioridad'];
-            const inSLAResolved = row['InSLAResolved'];
-            const inSLAResponse = row['InSLAResponse']
-            console.log(priority);
-            const slaResponse = GetDifferenceWorkingDays(openRequest, assignmentDate);
-            const slaResponseClass = getResponseSLAClass(inSLAResponse);
+    currentTableData = data.filter(
+    row =>
+        ['High', 'Critical', '']
+        .includes(row.Prioridad)
+);
 
-            const slaSolution = GetDifferenceWorkingDays(openRequest, requestResolved);
-            const slaSolutionClass = getSolutionSLAClass(inSLAResolved);
-            tbody.innerHTML += `
-                    <tr>
-                        <td class="text-blue-400 font-mono font-bold break-words max-w-xs"> ${row['Title']} </td>
-                        <td>${row['Dispatcher']}</td>
-                        <td>${row['Assigned to']}</td>
-                        <td>${row.Dealer}</td>
-                        <td>${row.Asset}</td>
-                        <td>
-                            <div class="status-pill ${getPriorityClass(row.Prioridad)}">
-                            ${row.Prioridad}
-                            </div>
-                        </td>
-                        <td> ${row['Next Steps']} </td>
-                        <td> 
-                        <div class=" status-pill ${slaResponseClass}">${slaResponse}</div>
-                        </td>
-                        <td> 
-                        <div class=" status-pill ${slaSolutionClass}">${slaSolution}</div>
-                        </td>
-                        
-                    </tr>
-                    `;
-        });
+currentPage = 1;
+
+renderTicketTable();
+
     // Actualizar Gráficas
 
     const sKeys = Object.keys(specs).sort();
@@ -153,4 +129,119 @@ function renderDashboard(data) {
         xaxis: { side: 'bottom', gridcolor: '#1E293B' },
         yaxis: { gridcolor: '#1E293B' }
     }, { displayModeBar: false });
+}
+function renderTicketTable() {
+
+    const tbody =
+        document.getElementById("table-body");
+
+    tbody.innerHTML = "";
+
+    const start =
+        (currentPage - 1) * rowsPerPage;
+
+    const end =
+        start + rowsPerPage;
+
+    const pageData =
+        currentTableData.slice(start, end);
+
+    pageData.forEach(row => {
+
+        const openRequest = row['Open Request'];
+        const assignmentDate = row['AssignmentDate'];
+        const requestResolved = row['RequestResolved'];
+
+        const inSLAResolved = row['InSLAResolved'];
+        const inSLAResponse = row['InSLAResponse'];
+
+        const slaResponse =
+            GetDifferenceWorkingDays(
+                openRequest,
+                assignmentDate
+            );
+
+        const slaResponseClass =
+            getResponseSLAClass(
+                inSLAResponse
+            );
+
+        const slaSolution =
+            GetDifferenceWorkingDays(
+                openRequest,
+                requestResolved
+            );
+
+        const slaSolutionClass =
+            getSolutionSLAClass(
+                inSLAResolved
+            );
+
+        tbody.innerHTML += `
+            <tr>
+                <td class="text-blue-400 font-mono font-bold ticket-cell">
+                    ${row['Title']}
+                </td>
+                <td>${row['Dispatcher']}</td>
+                <td>${row['Assigned to']}</td>
+                <td>${row.Dealer}</td>
+                <td>${row.Asset}</td>
+                <td>
+                    <div class="status-pill ${getPriorityClass(row.Prioridad)}">
+                        ${row.Prioridad}
+                    </div>
+                </td>
+                <td>${row['Next Steps']}</td>
+                <td>
+                    <div class="status-pill ${slaResponseClass}">
+                        ${slaResponse}
+                    </div>
+                </td>
+                <td>
+                    <div class="status-pill ${slaSolutionClass}">
+                        ${slaSolution}
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+
+    const totalPages =
+        Math.ceil(currentTableData.length / rowsPerPage);
+
+    document.getElementById("page-info").textContent =
+        `Página ${currentPage} de ${totalPages}`;
+}
+
+function changeRowsPerPage() {
+
+    rowsPerPage = parseInt(
+        document.getElementById("rows-per-page").value
+    );
+
+    currentPage = 1;
+
+    renderTicketTable();
+}
+function nextPage() {
+
+    const totalPages =
+        Math.ceil(currentTableData.length / rowsPerPage);
+
+    if (currentPage < totalPages) {
+
+        currentPage++;
+
+        renderTicketTable();
+    }
+}
+
+function previousPage() {
+
+    if (currentPage > 1) {
+
+        currentPage--;
+
+        renderTicketTable();
+    }
 }

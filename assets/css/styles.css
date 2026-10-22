@@ -101,3 +101,8 @@ td {
 .img-flag{
     margin-right: 1rem;
 }
+
+.ticket-cell{
+    white-space: normal;
+    word-break: break-word;
+}
