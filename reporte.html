@@ -33,6 +33,9 @@
 
         <div class="flex gap-3">
 
+            <button onclick="downloadExcel()" class="btn-action btn-blue">
+                📊 Generar Excel
+            </button>
             <button onclick="takeSnapshot('reporte')" class="btn-action btn-blue">
                 🖼️ Guardar Imagen
             </button>
@@ -44,7 +47,7 @@
     </header>
 
     <!-- FILTROS -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
 
         <div>
             <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">
@@ -60,6 +63,16 @@
             <input type="date" id="filter-end-date" onchange="applyFiltersDate()" class="w-full">
         </div>
 
+        <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">
+                Tipo de reporte
+            </label>
+
+            <select id="filter-type-sla" onchange="applyFiltersTypeSLA()" class="w-full">
+                <option value="Resp" selected>SLA de respuesta</option>
+                <option value="Sol">SLA de solución</option>
+            </select>
+        </div>
     </div>
 
     <!-- KPIS -->
@@ -77,7 +90,7 @@
             <img src="assets/images/Mex.png" alt="" srcset="" class="w-12 h-12 rounded-full object-cover img-flag">
             <div>
                 <div class="kpi-label text-blue-500">MÉXICO</div>
-                <div id="kpi-crit" class="kpi-value mt-1">96.2%</div>
+                <div id="kpi-mex" class="kpi-value mt-1">96.2%</div>
             </div>
         </div>
 
@@ -85,7 +98,7 @@
             <img src="assets/images/col.png" alt="" srcset="" class="w-12 h-12 rounded-full object-cover img-flag">
             <div>
                 <div class="kpi-label text-blue-500">COLOMBIA</div>
-                <div id="kpi-crit" class="kpi-value mt-1">92.1%</div>
+                <div id="kpi-col" class="kpi-value mt-1">92.1%</div>
             </div>
         </div>
 
@@ -93,178 +106,184 @@
             <img src="assets/images/latam.jpg" alt="" srcset="" class="w-12 h-12 rounded-full object-cover img-flag">
             <div>
                 <div class="kpi-label text-blue-500">LATAM</div>
-                <div id="kpi-crit" class="kpi-value mt-1">95.5%</div>
+                <div id="kpi-latam" class="kpi-value mt-1">95.5%</div>
             </div>
         </div>
 
     </div>
-    <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
-        SLA de respuesta
-    </h2>
 
-    <!-- Tablas de SLAs -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Tablas de SLAs de respuesta -->
+    <div id="sla-response-section">
+        <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
+            SLA de respuesta
+        </h2>
 
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por país
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
-                        <thead>
-                            <tr>
-                                <th>País</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por país
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <tbody id="table-body-sla-resp-pais">
-                        
-                        </tbody>
+                            <thead>
+                                <tr>
+                                    <th>País</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                    </table>
+                            <tbody id="table-body-sla-resp-pais">
+
+                            </tbody>
+
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por dealer
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por dealer
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <thead>
-                            <tr>
-                                <th>Dealer</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+                            <thead>
+                                <tr>
+                                    <th>Dealer</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                        <tbody id="table-body-sla-resp-dealer">
-                        </tbody>
+                            <tbody id="table-body-sla-resp-dealer">
+                            </tbody>
 
-                    </table>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por asset
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por asset
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <thead>
-                            <tr>
-                                <th>Asset</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+                            <thead>
+                                <tr>
+                                    <th>Asset</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                        <tbody id="table-body-sla-resp-asset">
-                            
-                        </tbody>
+                            <tbody id="table-body-sla-resp-asset">
 
-                    </table>
+                            </tbody>
+
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
+        </div>
     </div>
-    <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
-        SLA de solución
-    </h2>
 
-    <!-- Tablas de SLAs -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Tablas de SLAs de solucion -->
+    <div id="sla-solution-section">
 
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por país
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+        <h2 class="text-l font-black tracking-tight text-white  uppercase title-type-sla">
+            SLA de solución
+        </h2>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
-                        <thead>
-                            <tr>
-                                <th>País</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por país
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <tbody id="table-body-sla-sol-pais">
+                            <thead>
+                                <tr>
+                                    <th>País</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                        </tbody>
+                            <tbody id="table-body-sla-sol-pais">
 
-                    </table>
+                            </tbody>
+
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por dealer
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por dealer
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <thead>
-                            <tr>
-                                <th>Dealer</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+                            <thead>
+                                <tr>
+                                    <th>Dealer</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                        <tbody id="table-body-sla-sol-dealer">
-                        </tbody>
+                            <tbody id="table-body-sla-sol-dealer">
+                            </tbody>
 
-                    </table>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="card">
-            <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
-                Cumplimiento de SLA por asset
-            </h3>
-            <div>
-                <div class="overflow-x-auto w-full">
-                    <table id="data-table" class="w-full">
+            <div class="card">
+                <h3 class="font-bold text-blue-500 mb-4 uppercase text-[10px] tracking-widest">
+                    Cumplimiento de SLA por asset
+                </h3>
+                <div>
+                    <div class="overflow-x-auto w-full">
+                        <table id="data-table" class="w-full">
 
-                        <thead>
-                            <tr>
-                                <th>Asset</th>
-                                <th>Tickets</th>
-                                <th>Dentro SLA</th>
-                                <th>Fuera SLA</th>
-                                <th>% SLA</th>
-                            </tr>
-                        </thead>
+                            <thead>
+                                <tr>
+                                    <th>Asset</th>
+                                    <th>Tickets</th>
+                                    <th>Dentro SLA</th>
+                                    <th>Fuera SLA</th>
+                                    <th>% SLA</th>
+                                </tr>
+                            </thead>
 
-                        <tbody id="table-body-sla-sol-asset">
-        
-                        </tbody>
+                            <tbody id="table-body-sla-sol-asset">
 
-                    </table>
+                            </tbody>
+
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -294,7 +313,7 @@
                     </tr>
                 </thead>
 
-                <tbody id="">
+                <tbody id="summary-table-body">
                 </tbody>
 
             </table>
@@ -306,7 +325,7 @@
     <script src="src/shared/constants.js"></script>
     <script src="src/shared/tomaCaptura.js"></script>
     <script src="src/report/reporte.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 
 </html>
