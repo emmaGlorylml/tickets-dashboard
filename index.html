@@ -46,6 +46,15 @@
 
     <!-- FILTROS -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+
+                <div>
+            <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">País</label>
+            <select id="filter-country" onchange="updateDealerOptions(); applyFilters()">
+                <option value="all">Todos</option>
+            </select>
+        </div>
+
+
         <div>
             <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Dealer</label>
             <select id="filter-dealer" onchange="applyFilters()">
@@ -53,12 +62,7 @@
             </select>
         </div>
 
-        <div>
-            <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">País</label>
-            <select id="filter-country" onchange="applyFilters()">
-                <option value="all">Todos</option>
-            </select>
-        </div>
+
 
         <div>
             <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block ml-1">Prioridad</label>
