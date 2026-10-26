@@ -47,6 +47,7 @@ function extractCountry(str) {
     const low = str.toLowerCase();
 
     if (low.includes("mex")) return "México";
+    if (low.includes("méx")) return "México";
     if (low.includes("col")) return "Colombia";
     if (low.includes("per")) return "Perú";
     if (low.includes("bra")) return "Brasil";

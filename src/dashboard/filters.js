@@ -7,7 +7,7 @@ const dealersByCountry = {
     "Bolivia": ["Autored"],
     "Colombia": ["GGS Colombia"],
     "Salvador": ["Betantecnica"],
-    "Guatemala": ["Betatecnica"],
+    "Guatemala": ["Betantecnica"],
     "Perú": ["Corporación Cárdenas"],
     "Venezuela": ["Corporación Cárdenas"],
     "Panamá": ["Suplesa", "Datacom"],
@@ -86,6 +86,7 @@ function applyFilters() {
     });
 
     renderDashboard(filtered);
+    console.log(filtered);
 }
 
 function updateDealerOptions() {
