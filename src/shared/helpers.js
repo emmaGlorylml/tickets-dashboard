@@ -63,6 +63,8 @@ function extractCountry(str) {
     if (low.includes("cost")) return "Costa Rica";
     if (low.includes("suri")) return "Suriname";
     if (low.includes("guy")) return "Guyana";
+    if (low.includes("trin")) return "Trinidad y Tobago";
+    if (low.includes("lat")) return "LATAM";
 
     return "Otro";
 }
