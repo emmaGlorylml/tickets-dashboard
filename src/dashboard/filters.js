@@ -84,9 +84,9 @@ function applyFilters() {
 
         return matchesDealer && matchesCountry && matchesPrio;
     });
-
-    renderDashboard(filtered);
-    console.log(filtered);
+    const filteredOpen = filtered.filter(item => item.Status !== "Closed");
+    renderDashboard(filteredOpen);
+    console.log(filteredOpen);
 }
 
 function updateDealerOptions() {
