@@ -13,7 +13,7 @@ const dealersByCountry = {
     "Panamá": ["Suplesa", "Datacom"],
     "Paraguay": ["Diesa"],
     "Ecuador": ["Trade", "Tecs"],
-    "Brazil": ["GGS Brazil"],
+    "Brasil": ["GGS Brasil"],
     "LATAM": ["GGS Dealers"],
     "México": ["GGS México"],
     "Uruguay": ["Permaquim"],
