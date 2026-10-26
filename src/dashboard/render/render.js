@@ -2,7 +2,7 @@
 // Variables
 // =========================
 let currentPage = 1;
-let rowsPerPage = 10;
+let rowsPerPage = 5;
 let currentTableData = [];
 // =========================
 // RENDER
@@ -214,7 +214,6 @@ function renderTicketTable() {
 }
 
 function changeRowsPerPage() {
-
     rowsPerPage = parseInt(
         document.getElementById("rows-per-page").value
     );
