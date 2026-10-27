@@ -352,94 +352,69 @@ function renderSummaryTable(data, slaField) {
 }
 function downloadExcel() {
 
-    const type = document.getElementById("filter-type-sla").value;
+    // Obtener las fechas seleccionadas
+    const startDate = document.getElementById("filter-start-date").value;
+    const endDate = document.getElementById("filter-end-date").value;
 
-    let tables = [];
+    // Filtrar los tickets únicamente por fecha
+    const filteredData = rawDataReport.filter(item => {
 
-    if (type === "Resp") {
+        if (!item["Open Request"]) {
+            return false;
+        }
 
-        tables = [
-            {
-                sheetName: "Pais",
-                tbodyId: "table-body-sla-resp-pais"
-            },
-            {
-                sheetName: "Dealer",
-                tbodyId: "table-body-sla-resp-dealer"
-            },
-            {
-                sheetName: "Asset",
-                tbodyId: "table-body-sla-resp-asset"
-            }
-        ];
+        const openRequestDate = item["Open Request"].substring(0, 10);
 
-    } else {
+        if (startDate && openRequestDate < startDate) {
+            return false;
+        }
 
-        tables = [
-            {
-                sheetName: "Pais",
-                tbodyId: "table-body-sla-sol-pais"
-            },
-            {
-                sheetName: "Dealer",
-                tbodyId: "table-body-sla-sol-dealer"
-            },
-            {
-                sheetName: "Asset",
-                tbodyId: "table-body-sla-sol-asset"
-            }
-        ];
-    }
+        if (endDate && openRequestDate > endDate) {
+            return false;
+        }
 
-    const workbook = XLSX.utils.book_new();
-
-    tables.forEach(table => {
-
-        const rows = document.querySelectorAll(
-            `#${table.tbodyId} tr`
-        );
-
-        const sheetData = [
-            ["Nombre", "Tickets", "Dentro SLA", "Fuera SLA", "% SLA"]
-        ];
-
-        rows.forEach(row => {
-
-            const cols = row.querySelectorAll("td");
-
-            sheetData.push([
-                cols[0]?.innerText || "",
-                cols[1]?.innerText || "",
-                cols[2]?.innerText || "",
-                cols[3]?.innerText || "",
-                cols[4]?.innerText || ""
-            ]);
-        });
-
-        const worksheet =
-            XLSX.utils.aoa_to_sheet(sheetData);
-
-        worksheet["!cols"] = [
-            { wch: 35 },
-            { wch: 12 },
-            { wch: 12 },
-            { wch: 12 },
-            { wch: 12 }
-        ];
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            worksheet,
-            table.sheetName
-        );
+        return true;
     });
 
+    if (filteredData.length === 0) {
+        alert("No hay tickets para exportar con las fechas seleccionadas.");
+        return;
+    }
+
+    // Convertir los tickets a una hoja de Excel
+    const worksheet = XLSX.utils.json_to_sheet(filteredData);
+
+    // Ajustar automáticamente el ancho de las columnas
+    const headers = Object.keys(filteredData[0]);
+
+    worksheet["!cols"] = headers.map(header => ({
+        wch: Math.min(
+            Math.max(
+                header.length,
+                ...filteredData.map(item =>
+                    String(item[header] ?? "").length
+                )
+            ) + 2,
+            40
+        )
+    }));
+
+    // Crear el libro de Excel
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Tickets"
+    );
+
+    // Nombre del archivo
     const today = new Date()
         .toISOString()
         .substring(0, 10);
 
     XLSX.writeFile(
         workbook,
-        `SLA_Report_${type}_${today}.xlsx`
+        `Tickets_${startDate || "Inicio"}_${endDate || "Fin"}_${today}.xlsx`
     );
 }
